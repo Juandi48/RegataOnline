@@ -1,0 +1,22 @@
+# Java / Maven / Gradle
+target/
+build/
+out/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+*.iml
+.idea/
+.vscode/
+.project
+.classpath
+.settings/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (si hay SPA)
+node_modules/
+dist/
