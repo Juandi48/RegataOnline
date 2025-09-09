@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Jugador - Detalle</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<header><h1>Jugador - Detalle</h1></header>
+<nav><a class="btn" th:href="@{/jugadores}">Volver</a></nav>
+<pre>
+ID: <span th:text="${jugador.id}">1</span>
+Nombre: <span th:text="${jugador.nombre}">Nombre</span>
+Email: <span th:text="${jugador.email}">Email</span>
+</pre>
+</body>
+</html>
