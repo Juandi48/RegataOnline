@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Barco - Formulario</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<header><h1>Barco - Formulario</h1></header>
+<nav><a class="btn" th:href="@{/barcos}">Volver</a></nav>
+
+<form th:object="${barco}"
+      th:action="${*{id} != null} ? @{/barcos/{id}(id=*{id})} : @{/barcos}"
+      method="post">
+  <input type="hidden" th:field="*{id}"/>
+
+  <div class="row">Modelo:
+    <select name="modeloId" required>
+      <option th:each="m : ${modelos}" th:value="${m.id}"
+              th:text="${m.nombre}"
+              th:selected="${barco.modelo} != null ? ${m.id} == ${barco.modelo.id} : false">
+        Modelo
+      </option>
+    </select>
+  </div>
+
+  <div class="row">Jugador:
+    <select name="jugadorId" required>
+      <option th:each="j : ${jugadores}" th:value="${j.id}"
+              th:text="${j.nombre}"
+              th:selected="${barco.jugador} != null ? ${j.id} == ${barco.jugador.id} : false">
+        Jugador
+      </option>
+    </select>
+  </div>
+
+  <div class="row">Posición X: <input type="number" th:field="*{posX}" value="0"/></div>
+  <div class="row">Posición Y: <input type="number" th:field="*{posY}" value="0"/></div>
+  <div class="row">Velocidad X: <input type="number" th:field="*{velX}" value="0"/></div>
+  <div class="row">Velocidad Y: <input type="number" th:field="*{velY}" value="0"/></div>
+
+  <div class="row"><button class="btn primary" type="submit">Guardar</button></div>
+</form>
+</body>
+</html>

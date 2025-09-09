@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Modelo - Detalle</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<header><h1>Modelo - Detalle</h1></header>
+<nav><a class="btn" th:href="@{/modelos}">Volver</a></nav>
+<pre>
+ID: <span th:text="${modeloBarco.id}">1</span>
+Nombre: <span th:text="${modeloBarco.nombre}">Nombre</span>
+Color: <span th:text="${modeloBarco.colorHex}">#FFFFFF</span>
+</pre>
+</body>
+</html>
