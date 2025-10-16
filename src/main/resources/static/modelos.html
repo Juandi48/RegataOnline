@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>Modelos · Regata Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/dashboard.html">🏁 Regata Online</a>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between">
+      <span>Gestión de Modelos</span>
+      <a class="btn btn-secondary" href="/dashboard.html">Dashboard</a>
+    </div>
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-2">
+        <input class="form-control w-50" placeholder="Buscar modelo...">
+        <button class="btn btn-success" onclick="nuevo()">+ Nuevo Modelo</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Color</th><th>Acciones</th></tr></thead>
+          <tbody id="tbl"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API="/api";
+
+async function j(u,opt){const r=await fetch(u,opt);return r.json();}
+
+async function cargar(){
+  const data = await j(`${API}/modelos-barcos`);
+  const tb = document.getElementById('tbl');
+  tb.innerHTML = data.map(m=>`
+    <tr>
+      <td>${m.id||''}</td>
+      <td>${m.nombre}</td>
+      <td><span class="badge" style="background:${m.colorHex};">${m.colorHex}</span></td>
+      <td>
+        <button class="btn btn-sm btn-info" onclick="ver(${m.id})">Ver</button>
+        <button class="btn btn-sm btn-warning" onclick="editar(${m.id})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminar(${m.id})">Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+function nuevo(){
+  const nombre=prompt('Nombre del modelo'); if(!nombre) return;
+  const color=prompt('Color hex (#RRGGBB)', '#3498db'); if(!color) return;
+  fetch(`${API}/modelos-barcos`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre, colorHex:color})}).then(()=>cargar());
+}
+function ver(id){ location.href=`/modelos.html#ver-${id}`; }
+function editar(id){
+  const nombre=prompt('Nuevo nombre'); if(!nombre) return;
+  const color=prompt('Nuevo color hex', '#2ecc71'); if(!color) return;
+  fetch(`${API}/modelos-barcos/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id, nombre, colorHex:color})}).then(()=>cargar());
+}
+function eliminar(id){
+  if(!confirm('¿Eliminar modelo?')) return;
+  fetch(`${API}/modelos-barcos/${id}`,{method:'DELETE'}).then(()=>cargar());
+}
+cargar();
+</script>
+</body>
+</html>

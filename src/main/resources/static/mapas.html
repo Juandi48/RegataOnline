@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>Mapas · Regata Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/dashboard.html">🏁 Regata Online</a>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between"><span>Editor de Mapas</span><a class="btn btn-secondary" href="/dashboard.html">Dashboard</a></div>
+        <div class="card-body">
+          <div id="grid" class="grid border p-2 rounded" style="--w:12;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3">
+      <div class="card h-100">
+        <div class="card-header">Herramientas</div>
+        <div class="card-body tools">
+          <button class="btn btn-primary" onclick="setTool('AGUA')">💧 Agua</button>
+          <button class="btn btn-dark" onclick="setTool('PARED')">🧱 Pared</button>
+          <button class="btn btn-success" onclick="setTool('PARTIDA')">🟢 Partida</button>
+          <button class="btn btn-danger" onclick="setTool('META')">🏁 Meta</button>
+          <hr>
+          <button class="btn btn-success" onclick="guardar()">💾 Guardar Mapa</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3">
+      <div class="card h-100">
+        <div class="card-header">Dimensiones</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label">Ancho</label>
+            <input id="an" type="number" class="form-control" value="12" min="5" max="30">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Alto</label>
+            <input id="al" type="number" class="form-control" value="10" min="5" max="30">
+          </div>
+          <button class="btn btn-secondary" onclick="resize()">Aplicar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API="/api";
+const APIv1="/api/v1";
+let mapa = { id:null, nombre:'Mapa editor', ancho:12, alto:10, celdas:[] };
+let tool='AGUA';
+
+function setTool(t){ tool=t; }
+function resize(){
+  mapa.ancho = +document.getElementById('an').value;
+  mapa.alto  = +document.getElementById('al').value;
+  mapa.celdas = mapa.celdas.filter(c=> c.x<mapa.ancho && c.y<mapa.alto);
+  draw();
+}
+
+function draw(){
+  const cont = document.getElementById('grid');
+  cont.style.setProperty('--w', mapa.ancho);
+  cont.innerHTML='';
+  const tipos = new Map(mapa.celdas.map(c => [`${c.x},${c.y}`, c.tipo]));
+  for(let y=0;y<mapa.alto;y++){
+    for(let x=0;x<mapa.ancho;x++){
+      const d=document.createElement('div');
+      d.className='cell cell-'+(tipos.get(`${x},${y}`)||'pared').toLowerCase();
+      d.onclick=()=>{
+        const k=`${x},${y}`;
+        if(tool==='AGUA' || tool==='PARED' || tool==='PARTIDA' || tool==='META'){
+          const i=mapa.celdas.findIndex(c=>c.x===x&&c.y===y);
+          if(i>=0) mapa.celdas.splice(i,1);
+          mapa.celdas.push({x,y,tipo:tool});
+          draw();
+        }
+      };
+      cont.appendChild(d);
+    }
+  }
+}
+async function guardar(){
+  // Crea/actualiza el mapa base (nombre/ancho/alto)
+  let base = await fetch(`${API}/mapas`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ nombre: mapa.nombre, ancho: mapa.ancho, alto: mapa.alto })
+  }).then(r=>r.json());
+  alert('Mapa guardado con ID: '+base.id);
+}
+draw();
+</script>
+</body>
+</html>

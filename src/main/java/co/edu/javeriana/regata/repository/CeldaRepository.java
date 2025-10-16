@@ -1,9 +1,17 @@
 package co.edu.javeriana.regata.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import co.edu.javeriana.regata.domain.Celda;
-import org.springframework.stereotype.Repository;
+import co.edu.javeriana.regata.domain.Mapa;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-@Repository
+import java.util.Optional;
+
 public interface CeldaRepository extends JpaRepository<Celda, Long> {
+
+    @Query("select c from Celda c where c.mapa = :mapa and c.xCoord = :x and c.yCoord = :y")
+    Optional<Celda> findByMapaAndXY(@Param("mapa") Mapa mapa,
+                                    @Param("x") int x,
+                                    @Param("y") int y);
 }

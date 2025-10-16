@@ -1,0 +1,31 @@
+:root{
+  --brand:#223a52;        /* barra oscura */
+  --brand-2:#1f2f3a;      /* fondo secciones */
+  --primary:#2ecc71;      /* verde botones */
+  --danger:#e74c3c;       /* rojo botones */
+  --accent:#3498db;       /* azul */
+  --muted:#f5f7fa;        /* fondo app */
+}
+
+body{ background:#eef2f7; }
+.navbar { background: var(--brand)!important; }
+.navbar .navbar-brand, .navbar .nav-link { color:#fff!important; }
+
+.card { border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.06); }
+.card-header { background: var(--brand-2); color:#fff; border-top-left-radius:12px!important; border-top-right-radius:12px!important; }
+.badge-pill{ border-radius: 999px; padding:.4rem .7rem; font-weight:600; }
+.btn-primary{ background:var(--primary); border:none; }
+.btn-danger{ background:var(--danger); border:none; }
+.btn-secondary{ background:var(--accent); border:none; }
+
+.table thead th { background:#2b3b49; color:#fff; }
+.table tbody tr:nth-child(odd){ background:#fbfdff; }
+
+.tools .btn { display:block; width:100%; margin-bottom:.5rem; }
+.grid { display:grid; grid-template-columns: repeat(var(--w, 12), 24px); gap:2px; }
+.cell { width:24px; height:24px; border-radius:3px; }
+.cell-agua { background:#4099ff; }
+.cell-pared { background:#333; }
+.cell-partida { background:#2ecc71; }
+.cell-meta { background:#e74c3c; }
+.cell-barco { outline:3px solid #f1c40f; }

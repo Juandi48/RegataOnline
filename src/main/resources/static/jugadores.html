@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>Jugadores · Regata Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/dashboard.html">🏁 Regata Online</a>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between">
+      <span>Gestión de Jugadores</span>
+      <a class="btn btn-secondary" href="/dashboard.html">Dashboard</a>
+    </div>
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-2">
+        <input id="buscar" class="form-control w-50" placeholder="Buscar jugador...">
+        <button class="btn btn-success" onclick="nuevo()">+ Nuevo</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr></thead>
+          <tbody id="tbl"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API="/api";
+async function j(u,opt){const r=await fetch(u,opt);return r.json();}
+let DATA=[];
+async function cargar(){
+  DATA = await j(`${API}/jugadores`);
+  render();
+}
+function render(){
+  const q=document.getElementById('buscar').value?.toLowerCase()||'';
+  const tb=document.getElementById('tbl');
+  tb.innerHTML = DATA.filter(x=>x.nombre?.toLowerCase().includes(q)||x.email?.toLowerCase().includes(q))
+    .map(u=>`
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.nombre}</td>
+        <td>${u.email||''}</td>
+        <td>
+          <button class="btn btn-sm btn-warning" onclick="edit(${u.id})">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="delU(${u.id})">Eliminar</button>
+        </td>
+      </tr>
+    `).join('');
+}
+document.getElementById('buscar').oninput=render;
+function nuevo(){
+  const nombre=prompt('Nombre'); if(!nombre) return;
+  const email=prompt('Email'); 
+  fetch(`${API}/jugadores`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,email})}).then(()=>cargar());
+}
+function edit(id){
+  const nombre=prompt('Nuevo nombre'); if(!nombre) return;
+  const email=prompt('Nuevo email');
+  fetch(`${API}/jugadores/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,nombre,email})}).then(()=>cargar());
+}
+function delU(id){
+  if(!confirm('¿Eliminar?')) return;
+  fetch(`${API}/jugadores/${id}`,{method:'DELETE'}).then(()=>cargar());
+}
+cargar();
+</script>
+</body>
+</html>
