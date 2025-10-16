@@ -5,7 +5,7 @@ import java.util.*;
 
 @Entity
 public class Mapa {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -30,39 +30,18 @@ public class Mapa {
         this.celdas.add(celda);
     }
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getNombre() {
-        return nombre;
-    }
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public int getAncho() {
-        return ancho;
-    }
-    public void setAncho(int ancho) {
-        this.ancho = ancho;
-    }
+    public int getAncho() { return ancho; }
+    public void setAncho(int ancho) { this.ancho = ancho; }
 
-    public int getAlto() {
-        return alto;
-    }
-    public void setAlto(int alto) {
-        this.alto = alto;
-    }
+    public int getAlto() { return alto; }
+    public void setAlto(int alto) { this.alto = alto; }
 
-    public List<Celda> getCeldas() {
-        return celdas;
-    }
-    public void setCeldas(List<Celda> celdas) {
-        this.celdas = celdas;
-    }
+    public List<Celda> getCeldas() { return celdas; }
+    public void setCeldas(List<Celda> celdas) { this.celdas = celdas; }
 }
-

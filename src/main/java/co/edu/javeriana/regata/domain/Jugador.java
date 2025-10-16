@@ -1,5 +1,6 @@
 package co.edu.javeriana.regata.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.List;
 
 @Entity
 public class Jugador {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -18,6 +19,7 @@ public class Jugador {
     private String email;
 
     @OneToMany(mappedBy = "jugador", cascade = CascadeType.ALL)
+    @JsonIgnore // ← evita ciclo Jugador -> Barcos -> Jugador ...
     private List<Barco> barcos = new ArrayList<>();
 
     public Jugador() {}
@@ -35,32 +37,15 @@ public class Jugador {
         this.barcos = barcos;
     }
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getNombre() {
-        return nombre;
-    }
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public List<Barco> getBarcos() {
-        return barcos;
-    }
-    public void setBarcos(List<Barco> barcos) {
-        this.barcos = barcos;
-    }
+    public List<Barco> getBarcos() { return barcos; }
+    public void setBarcos(List<Barco> barcos) { this.barcos = barcos; }
 }
-

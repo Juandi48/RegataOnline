@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 public class Barco {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -14,8 +14,10 @@ public class Barco {
     @ManyToOne(optional = false)
     private Jugador jugador;
 
+    // OJO: velocidades pueden ser negativas
     private int velX;
     private int velY;
+
     private int posX;
     private int posY;
 
@@ -30,59 +32,24 @@ public class Barco {
         this.posY = posY;
     }
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public ModeloBarco getModelo() {
-        return modelo;
-    }
-    public void setModelo(ModeloBarco modelo) {
-        this.modelo = modelo;
-    }
+    public ModeloBarco getModelo() { return modelo; }
+    public void setModelo(ModeloBarco modelo) { this.modelo = modelo; }
 
-    public Jugador getJugador() {
-        return jugador;
-    }
-    public void setJugador(Jugador jugador) {
-        this.jugador = jugador;
-    }
+    public Jugador getJugador() { return jugador; }
+    public void setJugador(Jugador jugador) { this.jugador = jugador; }
 
-    public int getVelX() {
-        return velX;
-    }
-    public void setVelX(int velX) {
-        if (velX < 0) {
-            throw new IllegalArgumentException("La velocidad en X no puede ser negativa");
-        }
-        this.velX = velX;
-    }
+    public int getVelX() { return velX; }
+    public void setVelX(int velX) { this.velX = velX; } // ← sin restricción
 
-    public int getVelY() {
-        return velY;
-    }
-    public void setVelY(int velY) {
-        if (velY < 0) {
-            throw new IllegalArgumentException("La velocidad en Y no puede ser negativa");
-        }
-        this.velY = velY;
-    }
+    public int getVelY() { return velY; }
+    public void setVelY(int velY) { this.velY = velY; } // ← sin restricción
 
-    public int getPosX() {
-        return posX;
-    }
-    public void setPosX(int posX) {
-        this.posX = posX;
-    }
+    public int getPosX() { return posX; }
+    public void setPosX(int posX) { this.posX = posX; }
 
-    public int getPosY() {
-        return posY;
-    }
-    public void setPosY(int posY) {
-        this.posY = posY;
-    }
+    public int getPosY() { return posY; }
+    public void setPosY(int posY) { this.posY = posY; }
 }
-
