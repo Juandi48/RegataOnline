@@ -1,10 +1,12 @@
 package co.edu.javeriana.regata.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import co.edu.javeriana.regata.domain.Barco;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
+import java.util.List;
+
 public interface BarcoRepository extends JpaRepository<Barco, Long> {
+    List<Barco> findByJugadorId(Long jugadorId);
+    List<Barco> findByModeloId(Long modeloId);
+    List<Barco> findByJugadorIdAndModeloId(Long jugadorId, Long modeloId);
 }

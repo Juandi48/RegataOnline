@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -15,9 +16,34 @@ public class BarcoController {
     @Autowired
     private BarcoService barcoService;
 
+    // ===== NUEVO: listar todos o filtrar por jugadorId y/o modeloId =====
+    @GetMapping
+    public ResponseEntity<List<Barco>> listar(
+            @RequestParam(required = false) Long jugadorId,
+            @RequestParam(required = false) Long modeloId) {
+
+        List<Barco> resultado;
+
+        if (jugadorId != null && modeloId != null) {
+            resultado = barcoService.listarPorJugadorYModelo(jugadorId, modeloId);
+        } else if (jugadorId != null) {
+            resultado = barcoService.listarPorJugador(jugadorId);
+        } else if (modeloId != null) {
+            resultado = barcoService.listarPorModelo(modeloId);
+        } else {
+            resultado = barcoService.listarTodos();
+        }
+        return ResponseEntity.ok(resultado);
+    }
+
     @PostMapping
     public ResponseEntity<Barco> crearBarco(@RequestBody Barco barco) {
-        Barco barcoCreado = barcoService.crearBarco(barco.getModelo(), barco.getJugador(), barco.getVelX(), barco.getVelY(), barco.getPosX(), barco.getPosY());
+        Barco barcoCreado = barcoService.crearBarco(
+                barco.getModelo(),
+                barco.getJugador(),
+                barco.getVelX(), barco.getVelY(),
+                barco.getPosX(), barco.getPosY()
+        );
         return ResponseEntity.ok(barcoCreado);
     }
 
@@ -29,7 +55,13 @@ public class BarcoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Barco> actualizarBarco(@PathVariable Long id, @RequestBody Barco barco) {
-        Barco barcoActualizado = barcoService.actualizarBarco(id, barco.getModelo(), barco.getJugador(), barco.getVelX(), barco.getVelY(), barco.getPosX(), barco.getPosY());
+        Barco barcoActualizado = barcoService.actualizarBarco(
+                id,
+                barco.getModelo(),
+                barco.getJugador(),
+                barco.getVelX(), barco.getVelY(),
+                barco.getPosX(), barco.getPosY()
+        );
         return (barcoActualizado != null) ? ResponseEntity.ok(barcoActualizado) : ResponseEntity.notFound().build();
     }
 

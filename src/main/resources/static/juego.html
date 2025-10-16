@@ -6,6 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css"/>
+  <style>
+    .grid { display:grid; gap:4px; grid-template-columns: repeat(var(--w), 28px); }
+    .cell { width:28px; height:28px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px; }
+    .cell-agua{ background:#bfe9ff; }
+    .cell-pared{ background:#444; color:#fff; }
+    .cell-partida{ background:#22c55e; color:#fff; }
+    .cell-meta{ background:#ef4444; color:#fff; }
+    .ship{ border:2px solid #000; border-radius:50%; width:18px; height:18px; }
+  </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg">
@@ -24,7 +33,7 @@
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-4">
-          <div id="grid" class="grid"></div>
+          <div id="grid" class="grid" style="--w:12;"></div>
         </div>
         <div class="col-md-8">
           <div class="p-4 bg-light rounded h-100 d-flex align-items-center justify-content-center">
@@ -52,41 +61,67 @@
 </div>
 
 <script>
-const APIv1="/api/v1";
-let estado=null;
+const API = '/api/juego';
 
-function drawGrid(mapa, barco){
-  const cont=document.getElementById('grid');
-  cont.style.setProperty('--w', mapa.ancho);
-  cont.innerHTML='';
-  const tipos = new Map(mapa.celdas.map(c => [`${c.x},${c.y}`, c.tipo]));
-  for(let y=0;y<mapa.alto;y++){
-    for(let x=0;x<mapa.ancho;x++){
-      const d=document.createElement('div');
-      const t=(tipos.get(`${x},${y}`)||'PARED').toLowerCase();
-      d.className='cell cell-'+t;
-      if(barco && barco.posX===x && barco.posY===y) d.classList.add('cell-barco');
+// ⚠️ Ajusta estos IDs a los que existan en tu BD
+const jugadorId = 1;
+const modeloId  = 1;
+const mapaId    = 1;
+
+async function j(url,opt){ const r=await fetch(url,opt); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+
+async function iniciar(){
+  await j(`${API}/iniciar?jugadorId=${jugadorId}&modeloId=${modeloId}&mapaId=${mapaId}`, {method:'POST'});
+  await refrescar();
+}
+
+async function refrescar(){
+  const est = await j(`${API}/estado?jugadorId=${jugadorId}`);
+  render(est);
+  if(est.mensaje) console.log(est.mensaje);
+  if(est.estado === 'GANADO') alert('¡Ganaste! 🏁');
+}
+
+async function mov(ax, ay){
+  const est = await j(`${API}/mover?jugadorId=${jugadorId}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ax, ay})
+  });
+  render(est);
+  if(est.mensaje) console.log(est.mensaje);
+  if(est.estado === 'GANADO') alert('¡Ganaste! 🏁');
+}
+
+function render(est){
+  document.getElementById('turnoTxt').textContent =
+    `Turno de: ${est.jugador?.nombre || 'Jugador'} | Turno ${est.turno || 0}${est.estado==='COLISION'?' · ¡Choque!':''}`;
+
+  document.getElementById('vel').textContent =
+    `(${est.barco?.velX ?? 0},${est.barco?.velY ?? 0})`;
+
+  const cont = document.getElementById('grid');
+  cont.style.setProperty('--w', est.mapa.ancho);
+  cont.innerHTML = '';
+
+  const key=(x,y)=>`${x},${y}`;
+  const tipos = new Map(est.mapa.celdas.map(c=>[key(c.x,c.y), c.tipo.toLowerCase()]));
+
+  for(let y=0;y<est.mapa.alto;y++){
+    for(let x=0;x<est.mapa.ancho;x++){
+      const d = document.createElement('div');
+      d.className = 'cell cell-' + (tipos.get(key(x,y)) || 'pared');
+      if (est.barco && est.barco.posX===x && est.barco.posY===y){
+        const ship = document.createElement('div');
+        ship.className = 'ship';
+        ship.style.background = est.barco.colorHex || '#fff';
+        d.appendChild(ship);
+      }
       cont.appendChild(d);
     }
   }
 }
-async function start(){
-  estado = await fetch(`${APIv1}/game/start?mapaId=1&barcoId=1`,{method:'POST'}).then(r=>r.json());
-  render();
-}
-async function mov(dx,dy){
-  estado = await fetch(`${APIv1}/game/move`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({deltaVX:dx, deltaVY:dy})
-  }).then(r=>r.json());
-  render();
-}
-function render(){
-  document.getElementById('turnoTxt').textContent = `Turno de: ${estado.jugador?.nombre||'Jugador'} | Turno ${estado.turno||0}`;
-  document.getElementById('vel').textContent = `(${estado.barco?.velX||0},${estado.barco?.velY||0})`;
-  drawGrid(estado.mapa, estado.barco);
-}
-start();
+
+iniciar();
 </script>
 </body>
 </html>

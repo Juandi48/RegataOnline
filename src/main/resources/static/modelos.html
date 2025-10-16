@@ -8,26 +8,28 @@
   <link rel="stylesheet" href="/styles.css"/>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg bg-light border-bottom">
   <div class="container">
     <a class="navbar-brand fw-bold" href="/dashboard.html">🏁 Regata Online</a>
   </div>
 </nav>
 
 <div class="container my-4">
-  <div class="card">
-    <div class="card-header d-flex justify-content-between">
-      <span>Gestión de Modelos</span>
-      <a class="btn btn-secondary" href="/dashboard.html">Dashboard</a>
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">Gestión de Modelos</span>
+      <a class="btn btn-secondary btn-sm" href="/dashboard.html">Dashboard</a>
     </div>
     <div class="card-body">
-      <div class="d-flex justify-content-between mb-2">
-        <input class="form-control w-50" placeholder="Buscar modelo...">
+      <div class="d-flex justify-content-between mb-3">
+        <input id="busqueda" class="form-control w-50" placeholder="Buscar modelo...">
         <button class="btn btn-success" onclick="nuevo()">+ Nuevo Modelo</button>
       </div>
       <div class="table-responsive">
-        <table class="table">
-          <thead><tr><th>ID</th><th>Nombre</th><th>Color</th><th>Acciones</th></tr></thead>
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr><th>ID</th><th>Nombre</th><th>Color</th><th>Acciones</th></tr>
+          </thead>
           <tbody id="tbl"></tbody>
         </table>
       </div>
@@ -45,7 +47,7 @@ async function cargar(){
   const tb = document.getElementById('tbl');
   tb.innerHTML = data.map(m=>`
     <tr>
-      <td>${m.id||''}</td>
+      <td>${m.id}</td>
       <td>${m.nombre}</td>
       <td><span class="badge" style="background:${m.colorHex};">${m.colorHex}</span></td>
       <td>
@@ -56,21 +58,36 @@ async function cargar(){
     </tr>
   `).join('');
 }
+
 function nuevo(){
   const nombre=prompt('Nombre del modelo'); if(!nombre) return;
   const color=prompt('Color hex (#RRGGBB)', '#3498db'); if(!color) return;
-  fetch(`${API}/modelos-barcos`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre, colorHex:color})}).then(()=>cargar());
+  fetch(`${API}/modelos-barcos`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nombre, colorHex:color})
+  }).then(()=>cargar());
 }
-function ver(id){ location.href=`/modelos.html#ver-${id}`; }
+
+function ver(id){ 
+  location.href=`/modelo.html?id=${id}`; 
+}
+
 function editar(id){
   const nombre=prompt('Nuevo nombre'); if(!nombre) return;
   const color=prompt('Nuevo color hex', '#2ecc71'); if(!color) return;
-  fetch(`${API}/modelos-barcos/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id, nombre, colorHex:color})}).then(()=>cargar());
+  fetch(`${API}/modelos-barcos/${id}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id, nombre, colorHex:color})
+  }).then(()=>cargar());
 }
+
 function eliminar(id){
   if(!confirm('¿Eliminar modelo?')) return;
   fetch(`${API}/modelos-barcos/${id}`,{method:'DELETE'}).then(()=>cargar());
 }
+
 cargar();
 </script>
 </body>

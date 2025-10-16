@@ -1,55 +1,78 @@
 package co.edu.javeriana.regata.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import co.edu.javeriana.regata.domain.Celda;
 import co.edu.javeriana.regata.domain.Mapa;
+import co.edu.javeriana.regata.domain.TipoCelda;
+import co.edu.javeriana.regata.repository.CeldaRepository;
 import co.edu.javeriana.regata.repository.MapaRepository;
+import co.edu.javeriana.regata.web.dto.CeldaDTO;
+import co.edu.javeriana.regata.web.dto.MapaSaveDTO;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 public class MapaService {
 
-    @Autowired
-    private MapaRepository mapaRepository;
+    private final MapaRepository mapaRepository;
+    private final CeldaRepository celdaRepository;
 
-    public Mapa crearMapa(String nombre, int ancho, int alto) {
+    public MapaService(MapaRepository mapaRepository, CeldaRepository celdaRepository) {
+        this.mapaRepository = mapaRepository;
+        this.celdaRepository = celdaRepository;
+    }
+
+    // (Tus métodos existentes: crearMapa, obtenerTodos, etc.)
+
+    @Transactional
+    public Mapa crearMapaConCeldas(MapaSaveDTO dto) {
+        // 1) Crear mapa
         Mapa mapa = new Mapa();
-        mapa.setNombre(nombre);
-        mapa.setAncho(ancho);
-        mapa.setAlto(alto);
-        return mapaRepository.save(mapa);
-    }
+        mapa.setNombre(dto.getNombre());
+        mapa.setAncho(dto.getAncho());
+        mapa.setAlto(dto.getAlto());
+        mapa = mapaRepository.save(mapa);
 
-    public List<Mapa> obtenerTodosMapas() {
-        return mapaRepository.findAll();
-    }
-
-    public Optional<Mapa> obtenerMapaPorId(Long id) {
-        return mapaRepository.findById(id);
-    }
-
-    public Mapa actualizarMapa(Long id, String nombre, int ancho, int alto) {
-        Optional<Mapa> mapaExistente = mapaRepository.findById(id);
-        if (mapaExistente.isPresent()) {
-            Mapa mapa = mapaExistente.get();
-            mapa.setNombre(nombre);
-            mapa.setAncho(ancho);
-            mapa.setAlto(alto);
-            return mapaRepository.save(mapa);
+        // 2) Persistir celdas
+        if (dto.getCeldas() != null) {
+            for (CeldaDTO c : dto.getCeldas()) {
+                Celda celda = new Celda();
+                celda.setMapa(mapa);
+                celda.setxCoord(c.getX());
+                celda.setyCoord(c.getY());
+                celda.setTipo(TipoCelda.valueOf(c.getTipo())); // debe venir AGUA/PARED/PARTIDA/META
+                celdaRepository.save(celda);
+            }
         }
-        return null; 
+        return mapa;
     }
 
-    public boolean eliminarMapa(Long id) {
-        if (mapaRepository.existsById(id)) {
-            mapaRepository.deleteById(id);
-            return true;
-        }
-        return false;
+    @Transactional
+    public Optional<Mapa> reemplazarCeldas(Long mapaId, MapaSaveDTO dto) {
+        return mapaRepository.findById(mapaId).map(mapa -> {
+            // Actualizar metadatos si vienen
+            if (dto.getNombre() != null) mapa.setNombre(dto.getNombre());
+            if (dto.getAncho() > 0) mapa.setAncho(dto.getAncho());
+            if (dto.getAlto() > 0) mapa.setAlto(dto.getAlto());
+            mapaRepository.save(mapa);
+
+            // Borrar celdas actuales y volver a insertarlas
+            celdaRepository.deleteAll(mapa.getCeldas());
+            mapa.getCeldas().clear();
+
+            if (dto.getCeldas() != null) {
+                for (CeldaDTO c : dto.getCeldas()) {
+                    Celda celda = new Celda();
+                    celda.setMapa(mapa);
+                    celda.setxCoord(c.getX());
+                    celda.setyCoord(c.getY());
+                    celda.setTipo(TipoCelda.valueOf(c.getTipo()));
+                    celdaRepository.save(celda);
+                    mapa.getCeldas().add(celda);
+                }
+            }
+            return mapa;
+        });
     }
 }
-
-

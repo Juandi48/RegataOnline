@@ -8,29 +8,47 @@
   <link rel="stylesheet" href="/styles.css"/>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg bg-light border-bottom">
   <div class="container">
     <a class="navbar-brand fw-bold" href="/dashboard.html">🏁 Regata Online</a>
   </div>
 </nav>
 
 <div class="container my-4">
-  <div class="card">
-    <div class="card-header d-flex justify-content-between">
-      <span>Gestión de Barcos</span>
-      <a class="btn btn-secondary" href="/dashboard.html">Dashboard</a>
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">Gestión de Barcos</span>
+      <a class="btn btn-secondary btn-sm" href="/dashboard.html">Dashboard</a>
     </div>
+
     <div class="card-body">
-      <div class="d-flex justify-content-between mb-2">
-        <div class="d-flex gap-2">
-          <select id="selJug" class="form-select"></select>
-          <select id="selMod" class="form-select"></select>
+      <!-- Filtros y botón nuevo -->
+      <div class="row g-2 align-items-end mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Filtrar por jugador</label>
+          <select id="fJugador" class="form-select">
+            <option value="">Todos los jugadores</option>
+          </select>
         </div>
-        <button class="btn btn-success" onclick="nuevo()">+ Nuevo Barco</button>
+        <div class="col-md-4">
+          <label class="form-label">Filtrar por modelo</label>
+          <select id="fModelo" class="form-select">
+            <option value="">Todos los modelos</option>
+          </select>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#dlgNuevo">+ Nuevo Barco</button>
+        </div>
       </div>
+
+      <!-- Tabla -->
       <div class="table-responsive">
-        <table class="table">
-          <thead><tr><th>ID</th><th>Modelo</th><th>Propietario</th><th>Posición</th><th>Velocidad</th><th>Acciones</th></tr></thead>
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+          <tr>
+            <th>ID</th><th>Modelo</th><th>Propietario</th><th>Posición</th><th>Velocidad</th><th>Acciones</th>
+          </tr>
+          </thead>
           <tbody id="tbl"></tbody>
         </table>
       </div>
@@ -38,54 +56,145 @@
   </div>
 </div>
 
+<!-- Modal nuevo barco -->
+<div class="modal fade" id="dlgNuevo" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="frmNuevo" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nuevo Barco</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body row g-2">
+        <div class="col-12">
+          <label class="form-label">Jugador</label>
+          <select id="jugadorId" class="form-select" required></select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Modelo</label>
+          <select id="modeloId" class="form-select" required></select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Pos X</label>
+          <input id="posX" type="number" class="form-control" value="0">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Pos Y</label>
+          <input id="posY" type="number" class="form-control" value="0">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Vel X</label>
+          <input id="velX" type="number" class="form-control" value="0" min="0">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Vel Y</label>
+          <input id="velY" type="number" class="form-control" value="0" min="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Crear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API="/api";
+const API = {
+  barcos:   "/api/barcos",
+  modelos:  "/api/modelos-barcos",
+  jugadores:"/api/jugadores"
+};
 
-async function j(u,opt){const r=await fetch(u,opt);return r.json();}
-
-let J=[], M=[], B=[];
-async function cargar(){
-  [J,M,B] = await Promise.all([
-    j(`${API}/jugadores`), j(`${API}/modelos-barcos`), j(`${API}/barcos`)
-  ]);
-  document.getElementById('selJug').innerHTML = `<option value="">Todos los jugadores</option>` + J.map(x=>`<option value="${x.id}">${x.nombre}</option>`).join('');
-  document.getElementById('selMod').innerHTML = `<option value="">Todos los modelos</option>` + M.map(x=>`<option value="${x.id}">${x.nombre}</option>`).join('');
-  render();
+async function j(url, opt) {
+  const r = await fetch(url, opt);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.status !== 204 ? r.json() : null;
 }
-function render(){
-  const fj = document.getElementById('selJug').value;
-  const fm = document.getElementById('selMod').value;
+
+async function poblarSelectsBase() {
+  const [jugadores, modelos] = await Promise.all([ j(API.jugadores), j(API.modelos) ]);
+  const fJ = document.getElementById('fJugador');
+  const fM = document.getElementById('fModelo');
+  const sJ = document.getElementById('jugadorId');
+  const sM = document.getElementById('modeloId');
+
+  // filtros
+  fJ.innerHTML = '<option value="">Todos los jugadores</option>' +
+    jugadores.map(x => `<option value="${x.id}">${x.nombre}</option>`).join('');
+  fM.innerHTML = '<option value="">Todos los modelos</option>' +
+    modelos.map(x => `<option value="${x.id}">${x.nombre}</option>`).join('');
+
+  // selects del modal
+  sJ.innerHTML = jugadores.map(x => `<option value="${x.id}">${x.nombre}</option>`).join('');
+  sM.innerHTML = modelos.map(x => `<option value="${x.id}">${x.nombre} (${x.colorHex})</option>`).join('');
+}
+
+async function cargar() {
+  const jugadorId = document.getElementById('fJugador').value;
+  const modeloId  = document.getElementById('fModelo').value;
+
+  const params = new URLSearchParams();
+  if (jugadorId) params.set("jugadorId", jugadorId);
+  if (modeloId)  params.set("modeloId",  modeloId);
+
+  const data = await j(`${API.barcos}${params.toString() ? ("?" + params.toString()) : ""}`);
   const tb = document.getElementById('tbl');
-  const view = B.filter(b => (!fj || b.jugador?.id==fj) && (!fm || b.modelo?.id==fm));
-  tb.innerHTML = view.map(b=>`
+  tb.innerHTML = data.map(b => `
     <tr>
-      <td>${b.id||''}</td>
-      <td>${b.modelo?.nombre||'-'}</td>
-      <td>${b.jugador?.nombre||'-'}</td>
-      <td>(${b.posX},${b.posY})</td>
-      <td>(${b.velX},${b.velY})</td>
+      <td>${b.id}</td>
+      <td>${b.modelo?.nombre ?? ""}</td>
+      <td>${b.jugador?.nombre ?? ""}</td>
+      <td>(${b.posX}, ${b.posY})</td>
+      <td>(${b.velX}, ${b.velY})</td>
       <td>
-        <button class="btn btn-sm btn-info" onclick="ver(${b.id})">Ver</button>
-        <button class="btn btn-sm btn-warning" onclick="edit(${b.id})">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="delB(${b.id})">Eliminar</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminar(${b.id})">Eliminar</button>
       </td>
     </tr>
   `).join('');
 }
-document.getElementById('selJug').onchange=render;
-document.getElementById('selMod').onchange=render;
 
-function nuevo(){
-  const jugadorId = prompt('ID Jugador'); if(!jugadorId) return;
-  const modeloId = prompt('ID Modelo'); if(!modeloId) return;
-  const body = { jugador:{id:+jugadorId}, modelo:{id:+modeloId}, posX:0, posY:0, velX:0, velY:0 };
-  fetch(`${API}/barcos`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(()=>cargar());
+async function crear(e) {
+  e.preventDefault();
+  const jugadorId = parseInt(document.getElementById('jugadorId').value, 10);
+  const modeloId  = parseInt(document.getElementById('modeloId').value, 10);
+  const posX = parseInt(document.getElementById('posX').value || "0", 10);
+  const posY = parseInt(document.getElementById('posY').value || "0", 10);
+  const velX = parseInt(document.getElementById('velX').value || "0", 10);
+  const velY = parseInt(document.getElementById('velY').value || "0", 10);
+
+  // IMPORTANTE: tu controlador espera el objeto Barco con sub-objetos {modelo:{id}, jugador:{id}}
+  await j(API.barcos, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      modelo:  { id: modeloId },
+      jugador: { id: jugadorId },
+      posX, posY, velX, velY
+    })
+  });
+
+  // refrescar listado y cerrar modal
+  document.getElementById('frmNuevo').reset();
+  const modal = bootstrap.Modal.getInstance(document.getElementById('dlgNuevo'));
+  modal.hide();
+  await cargar();
 }
-function ver(id){ alert('Ver '+id); }
-function edit(id){ alert('Editar '+id); }
-function delB(id){ if(confirm('Eliminar barco?')) fetch(`${API}/barcos/${id}`,{method:'DELETE'}).then(()=>cargar()); }
 
-cargar();
+async function eliminar(id) {
+  if (!confirm("¿Eliminar barco?")) return;
+  await j(`${API.barcos}/${id}`, { method: "DELETE" });
+  await cargar();
+}
+
+document.getElementById('frmNuevo').addEventListener('submit', crear);
+document.getElementById('fJugador').addEventListener('change', cargar);
+document.getElementById('fModelo').addEventListener('change', cargar);
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await poblarSelectsBase();
+  await cargar();
+});
 </script>
 </body>
 </html>

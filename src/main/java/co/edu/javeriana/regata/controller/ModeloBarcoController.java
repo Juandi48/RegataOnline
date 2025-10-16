@@ -16,24 +16,48 @@ public class ModeloBarcoController {
     @Autowired
     private ModeloBarcoService modeloBarcoService;
 
+    // Crear
     @PostMapping
     public ResponseEntity<ModeloBarco> crearModeloBarco(@RequestBody ModeloBarco modeloBarco) {
         ModeloBarco modeloCreado = modeloBarcoService.crearModeloBarco(
-                modeloBarco.getId(), modeloBarco.getNombre(), modeloBarco.getColorHex());
+                modeloBarco.getId(),
+                modeloBarco.getNombre(),
+                modeloBarco.getColorHex()
+        );
         return ResponseEntity.ok(modeloCreado);
     }
 
+    // Listar todos
     @GetMapping
     public ResponseEntity<List<ModeloBarco>> obtenerTodosModelosBarcos() {
-        return ResponseEntity.ok(modeloBarcoService.obtenerTodosModelosBarcos());
+        List<ModeloBarco> modelos = modeloBarcoService.obtenerTodosModelosBarcos();
+        return ResponseEntity.ok(modelos);
     }
 
+    // === Variantes para obtener por ID ===
+
+    // 1) /api/modelos-barcos/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<ModeloBarco> obtenerModeloPorId(@PathVariable Long id) {
-        Optional<ModeloBarco> mb = modeloBarcoService.obtenerModeloPorId(id);
-        return mb.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ModeloBarco> obtenerModeloBarcoPorId(@PathVariable Long id) {
+        Optional<ModeloBarco> modelo = modeloBarcoService.obtenerModeloPorId(id);
+        return modelo.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // 2) /api/modelos-barcos?id=1
+    @GetMapping(params = "id")
+    public ResponseEntity<ModeloBarco> obtenerModeloBarcoPorQuery(@RequestParam("id") Long id) {
+        Optional<ModeloBarco> modelo = modeloBarcoService.obtenerModeloPorId(id);
+        return modelo.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // 3) /api/modelos-barcos/ver/{id}  (alias por si el front lo llama así)
+    @GetMapping("/ver/{id}")
+    public ResponseEntity<ModeloBarco> verModeloBarco(@PathVariable Long id) {
+        Optional<ModeloBarco> modelo = modeloBarcoService.obtenerModeloPorId(id);
+        return modelo.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Actualizar
     @PutMapping("/{id}")
     public ResponseEntity<ModeloBarco> actualizarModeloBarco(@PathVariable Long id, @RequestBody ModeloBarco modeloBarco) {
         Optional<ModeloBarco> modeloExistente = modeloBarcoService.obtenerModeloPorId(id);
@@ -45,6 +69,7 @@ public class ModeloBarcoController {
         return ResponseEntity.notFound().build();
     }
 
+    // Eliminar
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarModeloBarco(@PathVariable Long id) {
         boolean eliminado = modeloBarcoService.eliminarModeloBarco(id);

@@ -8,7 +8,9 @@ public class CeldaDTO {
     public CeldaDTO() {}
 
     public CeldaDTO(int x, int y, String tipo) {
-        this.x = x; this.y = y; this.tipo = tipo;
+        this.x = x;
+        this.y = y;
+        this.tipo = tipo;
     }
 
     public int getX() { return x; }
