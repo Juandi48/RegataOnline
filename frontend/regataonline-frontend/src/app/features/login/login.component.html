@@ -1,0 +1,68 @@
+<div class="container py-5">
+
+  <div class="card shadow border-1">
+    <div class="card-header fw-bold">
+      Login
+    </div>
+
+    <div class="card-body bg-light">
+      <div class="p-4 bg-white border rounded">
+
+        <!-- Encabezado -->
+        <div class="text-center mb-4">
+          <img src="https://cdn-icons-png.flaticon.com/512/7439/7439844.png"
+               alt="flag"
+               width="50"
+               height="50"
+               class="mb-3">
+
+          <h3 class="mt-2 mb-3">Regata Online</h3>
+
+          <hr>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="errorMsg" class="alert alert-danger">
+          {{ errorMsg }}
+        </div>
+
+        <!-- FORMULARIO -->
+        <form (ngSubmit)="entrar()">
+
+          <!-- Usuario -->
+          <label class="form-label fw-semibold">Usuario</label>
+          <select
+            class="form-control mb-3"
+            [(ngModel)]="selectedId"
+            name="jugador"
+            required>
+            <option [ngValue]="undefined">-- Seleccione --</option>
+            <option *ngFor="let j of jugadores" [ngValue]="j.id">
+              {{ j.nombre }} ({{ j.email }})
+            </option>
+          </select>
+
+          <!-- Contraseña -->
+          <label class="form-label fw-semibold">Contraseña</label>
+          <input
+            type="password"
+            class="form-control mb-4"
+            placeholder="Ingrese su contraseña"
+            [(ngModel)]="password"
+            name="password"
+            required>
+
+          <!-- Botón -->
+          <button type="submit"
+                  class="btn btn-success w-100 py-2 fw-semibold">
+            Iniciar Sesión
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>

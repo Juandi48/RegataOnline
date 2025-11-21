@@ -1,0 +1,71 @@
+<div class="container my-4">
+
+  <h4 class="mb-3">Dashboard Jugador</h4>
+
+  <div class="row g-4">
+
+    <!-- TARJETA IZQUIERDA -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>🏁 Regata Online - {{ isAdmin ? 'Administrador' : 'Jugador' }}</span>
+          <button class="btn btn-outline-danger btn-sm" (click)="logout()">Cerrar sesión</button>
+        </div>
+        <div class="card-body">
+          <div class="row text-center g-3 mb-3">
+            <div class="col-6">
+              <div class="p-3 bg-light rounded">
+                <div class="fs-4 fw-bold">{{ totalJugadores }}</div>
+                <div>Jugadores</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-light rounded">
+                <div class="fs-4 fw-bold">{{ totalBarcos }}</div>
+                <div>Barcos</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-light rounded">
+                <div class="fs-4 fw-bold">{{ totalModelos }}</div>
+                <div>Modelos</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-light rounded">
+                <div class="fs-4 fw-bold">{{ carrerasActivas }}</div>
+                <div>Carreras Activas</div>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- BOTONES SOLO ADMIN -->
+          <div class="d-grid gap-2" *ngIf="isAdmin">
+            <button class="btn btn-primary" (click)="irJugadores()">👤 Gestionar Jugadores</button>
+            <button class="btn btn-primary" (click)="irBarcos()">🚤 Gestionar Barcos</button>
+            <button class="btn btn-primary" (click)="irModelos()">🧩 Gestionar Modelos</button>
+            <button class="btn btn-primary" (click)="irMapas()">🗺️ Gestionar Mapas</button>
+          </div>
+
+          <!-- BOTÓN SOLO JUGADOR -->
+          <div class="d-grid" *ngIf="isJugador">
+            <button class="btn btn-success" (click)="irJuego()">🎮 Iniciar Juego</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Las otras dos columnas (gestión rápida / crear jugador) las puedes dejar solo para ADMIN si quieres -->
+    <div class="col-lg-4" *ngIf="isAdmin">
+      <!-- tu tarjeta de gestión de jugadores, igual que la tenías -->
+    </div>
+
+    <div class="col-lg-4" *ngIf="isAdmin">
+      <!-- tu tarjeta crear/editar jugador -->
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,14 @@
+import { Component } from '@angular/core';
+import { CommonModule, NgFor, NgIf, NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-barcos',
+  standalone: true,
+  imports: [CommonModule, FormsModule, NgFor, NgIf, NgClass],
+  templateUrl: './barcos.component.html',
+  styleUrls: ['./barcos.component.css']
+})
+export class BarcosComponent {
+
+}

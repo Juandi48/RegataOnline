@@ -1,14 +1,35 @@
 package co.edu.javeriana.regata.web.dto;
 
 public class MovimientoRequest {
-    // aceleraciones -1, 0, 1
-    public int ax;
-    public int ay;
 
-    public MovimientoRequest() {}
+    private Long barcoId;
+    private int deltaVx;
+    private int deltaVy;
 
-    public MovimientoRequest(int ax, int ay) {
-        this.ax = ax;
-        this.ay = ay;
+    public MovimientoRequest() {
+    }
+
+    public Long getBarcoId() {
+        return barcoId;
+    }
+
+    public void setBarcoId(Long barcoId) {
+        this.barcoId = barcoId;
+    }
+
+    public int getDeltaVx() {
+        return deltaVx;
+    }
+
+    public void setDeltaVx(int deltaVx) {
+        this.deltaVx = deltaVx;
+    }
+
+    public int getDeltaVy() {
+        return deltaVy;
+    }
+
+    public void setDeltaVy(int deltaVy) {
+        this.deltaVy = deltaVy;
     }
 }

@@ -1,0 +1,7 @@
+.container {
+  max-width: 900px;
+}
+
+img {
+  filter: grayscale(100%);
+}

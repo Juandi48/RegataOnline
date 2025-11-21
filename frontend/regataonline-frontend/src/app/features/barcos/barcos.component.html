@@ -1,0 +1,86 @@
+<div class="container py-4">
+
+  <h4 class="mb-3">Gestión de Barcos</h4>
+
+  <div class="row g-4">
+
+    <!-- LISTADO -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          Lista de Barcos
+        </div>
+        <div class="card-body p-0">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Modelo</th>
+                <th>Jugador</th>
+                <th>Pos (x,y)</th>
+                <th>Vel (vx,vy)</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let b of barcos">
+                <td>{{ b.id }}</td>
+                <td>{{ b.modelo?.nombre }}</td>
+                <td>{{ b.jugador?.nombre }}</td>
+                <td>({{ b.posX }}, {{ b.posY }})</td>
+                <td>({{ b.velX }}, {{ b.velY }})</td>
+                <td>
+                  <button class="btn btn-danger btn-sm"
+                          (click)="eliminar(b.id)">
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREAR / ASIGNAR BARCO -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          Crear Nuevo Barco
+        </div>
+        <div class="card-body">
+
+          <label class="form-label">Jugador</label>
+          <select class="form-control mb-3"
+                  [(ngModel)]="selectedJugadorId"
+                  name="jugadorSel">
+            <option [ngValue]="undefined">-- Seleccione --</option>
+            <option *ngFor="let j of jugadores" [ngValue]="j.id">
+              {{ j.nombre }} ({{ j.email }})
+            </option>
+          </select>
+
+          <label class="form-label">Modelo de Barco</label>
+          <select class="form-control mb-3"
+                  [(ngModel)]="selectedModeloId"
+                  name="modeloSel">
+            <option [ngValue]="undefined">-- Seleccione --</option>
+            <option *ngFor="let m of modelos" [ngValue]="m.id">
+              {{ m.nombre }} – {{ m.colorHex }}
+            </option>
+          </select>
+
+          <div class="d-grid">
+            <button class="btn btn-success"
+                    (click)="nuevo()">
+              Crear Barco
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

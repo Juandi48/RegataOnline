@@ -1,0 +1,50 @@
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <span>Editor de Mapas</span>
+        <a routerLink="/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
+      </div>
+      <div class="card-body">
+        <div
+          class="grid border p-2 rounded"
+          [style.--w]="mapa.ancho"
+        >
+          <div *ngFor="let y of [].constructor(mapa.alto); let yi = index">
+            <ng-container *ngFor="let x of [].constructor(mapa.ancho); let xi = index">
+              <div
+                class="cell"
+                [ngClass]="'cell-' + getTipoCelda(xi, yi).toLowerCase()"
+                (click)="onCellClick(xi, yi)"
+              ></div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-3">
+    <div class="card">
+      <div class="card-header">Herramientas</div>
+      <div class="card-body d-flex flex-column gap-2">
+        <button class="btn btn-primary" (click)="setTool('AGUA')">💧 Agua</button>
+        <button class="btn btn-dark" (click)="setTool('PARED')">🧱 Pared</button>
+        <button class="btn btn-success" (click)="setTool('PARTIDA')">🟢 Partida</button>
+        <button class="btn btn-danger" (click)="setTool('META')">🏁 Meta</button>
+        <hr>
+        <button class="btn btn-success" (click)="guardar()">💾 Guardar Mapa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-3">
+    <div class="card">
+      <div class="card-header">Dimensiones (fijas por ahora)</div>
+      <div class="card-body">
+        <p>Ancho: {{ mapa.ancho }}</p>
+        <p>Alto: {{ mapa.alto }}</p>
+      </div>
+    </div>
+  </div>
+</div>
