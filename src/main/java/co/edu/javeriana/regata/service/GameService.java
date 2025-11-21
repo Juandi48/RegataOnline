@@ -4,7 +4,6 @@ import co.edu.javeriana.regata.domain.Barco;
 import co.edu.javeriana.regata.repository.BarcoRepository;
 import co.edu.javeriana.regata.web.dto.MovimientoRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,52 +17,54 @@ public class GameService {
     }
 
     /**
-     * Lista todos los barcos que están en el juego.
-     * (por ahora simplemente todos los barcos de la BD)
+     * Devuelve todos los barcos que están "en juego".
+     * De momento tomamos todos los barcos de la BD;
+     * si luego tienes un flag de carrera actual, aquí se filtra.
      */
-    @Transactional(readOnly = true)
     public List<Barco> listarBarcosEnJuego() {
         return barcoRepository.findAll();
     }
 
     /**
-     * Aplica un movimiento a un barco siguiendo la regla del enunciado:
-     *
-     * v' = v + Δv   donde Δv ∈ {-1,0,1} en cada componente
-     * p' = p + v'
-     *
-     * No se validan colisiones entre barcos (varios pueden ocupar la misma celda).
-     * Aquí luego podrás agregar validaciones de paredes, meta, etc.
+     * Método que usa GameRest: aplica un movimiento a un barco.
      */
-    @Transactional
     public Barco aplicarMovimiento(MovimientoRequest req) {
+        return procesarMovimiento(req);
+    }
 
-        if (req.getDeltaVx() < -1 || req.getDeltaVx() > 1 ||
-            req.getDeltaVy() < -1 || req.getDeltaVy() > 1) {
-            throw new IllegalArgumentException("deltaVx y deltaVy deben estar en {-1,0,1}");
-        }
+    /**
+     * Lógica de movimiento según el enunciado:
+     *
+     *  v = (vx, vy)
+     *  a = (ax, ay)
+     *
+     *  v' = v + a
+     *  p' = p + v'
+     *
+     * El barco parte de v = (0,0) y posición inicial que tengas en la BD.
+     */
+    public Barco procesarMovimiento(MovimientoRequest req) {
 
         Barco barco = barcoRepository.findById(req.getBarcoId())
-                .orElseThrow(() -> new IllegalArgumentException("Barco no encontrado: " + req.getBarcoId()));
+                .orElseThrow(() -> new RuntimeException("Barco no encontrado: " + req.getBarcoId()));
 
-        // velocidad actual
-        int vx = barco.getVelX();
-        int vy = barco.getVelY();
+        // aceleraciones elegidas por el jugador: -1, 0 o +1
+        int ax = req.getAx();
+        int ay = req.getAy();
 
         // nueva velocidad
-        int nuevoVx = vx + req.getDeltaVx();
-        int nuevoVy = vy + req.getDeltaVy();
+        int nuevaVelX = barco.getVelX() + ax;
+        int nuevaVelY = barco.getVelY() + ay;
+
+        barco.setVelX(nuevaVelX);
+        barco.setVelY(nuevaVelY);
 
         // nueva posición
-        int nuevoX = barco.getPosX() + nuevoVx;
-        int nuevoY = barco.getPosY() + nuevoVy;
+        int nuevaPosX = barco.getPosX() + nuevaVelX;
+        int nuevaPosY = barco.getPosY() + nuevaVelY;
 
-        // TODO: aquí luego puedes validar paredes, límites del mapa, meta, etc.
-
-        barco.setVelX(nuevoVx);
-        barco.setVelY(nuevoVy);
-        barco.setPosX(nuevoX);
-        barco.setPosY(nuevoY);
+        barco.setPosX(nuevaPosX);
+        barco.setPosY(nuevaPosY);
 
         return barcoRepository.save(barco);
     }

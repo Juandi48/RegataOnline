@@ -1,40 +1,46 @@
 package co.edu.javeriana.regata.controller;
 
-import co.edu.javeriana.regata.service.JuegoService;
-import co.edu.javeriana.regata.web.dto.EstadoJuegoDTO;
+import co.edu.javeriana.regata.domain.Barco;
+import co.edu.javeriana.regata.repository.BarcoRepository;
 import co.edu.javeriana.regata.web.dto.MovimientoRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/juego")
+@RequestMapping("/api/v1/juego")
 public class JuegoController {
 
-    private final JuegoService juegoService;
+    private final BarcoRepository barcoRepository;
 
-    public JuegoController(JuegoService juegoService) {
-        this.juegoService = juegoService;
+    public JuegoController(BarcoRepository barcoRepository) {
+        this.barcoRepository = barcoRepository;
     }
 
-    @PostMapping("/iniciar")
-    public ResponseEntity<EstadoJuegoDTO> iniciar(
-            @RequestParam Long jugadorId,
-            @RequestParam Long modeloId,
-            @RequestParam Long mapaId
-    ) {
-        return ResponseEntity.ok(juegoService.iniciar(jugadorId, modeloId, mapaId));
-    }
-
-    @GetMapping("/estado")
-    public ResponseEntity<EstadoJuegoDTO> estado(@RequestParam Long jugadorId) {
-        return ResponseEntity.ok(juegoService.estado(jugadorId));
-    }
-
+    /**
+     * Aplica el movimiento de un turno a un barco:
+     *  - v' = v + (ax, ay)
+     *  - p' = p + v'
+     * (aquí todavía no estamos validando paredes, meta, etc.)
+     */
     @PostMapping("/mover")
-    public ResponseEntity<EstadoJuegoDTO> mover(
-            @RequestParam Long jugadorId,
-            @RequestBody MovimientoRequest req
-    ) {
-        return ResponseEntity.ok(juegoService.mover(jugadorId, req.ax, req.ay));
+    public Barco mover(@RequestBody MovimientoRequest req) {
+        Barco barco = barcoRepository.findById(req.getBarcoId())
+                .orElseThrow(() -> new RuntimeException("Barco no encontrado: " + req.getBarcoId()));
+
+        // cambio de velocidad
+        int newVx = barco.getVelX() + req.getAx();
+        int newVy = barco.getVelY() + req.getAy();
+
+        // actualizar velocidad
+        barco.setVelX(newVx);
+        barco.setVelY(newVy);
+
+        // nueva posición: p' = p + v'
+        int newX = barco.getPosX() + newVx;
+        int newY = barco.getPosY() + newVy;
+
+        barco.setPosX(newX);
+        barco.setPosY(newY);
+
+        return barcoRepository.save(barco);
     }
 }

@@ -24,16 +24,18 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Cargar Jugador desde la base usando email como username
+    // Cargar Jugador desde la BD usando el email como username
     @Bean
     public UserDetailsService userDetailsService(JugadorRepository jugadorRepository) {
         return username -> {
             Jugador j = jugadorRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("Jugador no encontrado: " + username));
+                    .orElseThrow(() ->
+                            new UsernameNotFoundException("Jugador no encontrado: " + username));
 
+            // j.getRol() devuelve "ADMIN" o "JUGADOR"
             return User.withUsername(j.getEmail())
                     .password(j.getPassword())
-                    .roles(j.getRol())  // "ADMIN" o "JUGADOR"
+                    .roles(j.getRol())   // genera ROLE_ADMIN o ROLE_JUGADOR
                     .build();
         };
     }
@@ -43,38 +45,32 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable());
 
-        // Para la consola H2
+        // Para que funcione la consola H2 en el navegador
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         http.authorizeHttpRequests(auth -> auth
-                // H2 sin auth
+                // H2 console sin autenticación
                 .requestMatchers("/h2/**").permitAll()
 
-                // 🔓 Lista de jugadores pública para el combo del login
-                .requestMatchers(HttpMethod.GET, "/api/v1/jugadores").permitAll()
+                // --------- ENDPOINTS PÚBLICOS (para llenar combos, etc.) ----------
+                // listar jugadores (para el combo de login)
+                .requestMatchers(HttpMethod.GET, "/api/v1/jugadores/**").permitAll()
+                // listar modelos de barco (jugador necesita verlos para elegir uno)
+                .requestMatchers(HttpMethod.GET, "/api/v1/modelos-barcos/**").permitAll()
+                // listar barcos (por ahora dejamos GET abierto; la app ya filtra por jugador)
+                .requestMatchers(HttpMethod.GET, "/api/v1/barcos/**").permitAll()
 
-                // Endpoint de autenticación (se llama ya con Basic desde Angular)
+                // --------- AUTENTICACIÓN ----------
+                // endpoint que usamos para login desde Angular (Basic Auth)
                 .requestMatchers("/api/v1/auth/**").authenticated()
 
-                // CRUD jugadores solo ADMIN
-                .requestMatchers(HttpMethod.POST,   "/api/v1/jugadores/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/api/v1/jugadores/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/jugadores/**").hasRole("ADMIN")
-
-                // Ejemplo: modelos/barcos/mapas CRUD solo ADMIN (puedes afinar GET si quieres)
-                .requestMatchers(HttpMethod.POST,   "/api/v1/modelos-barcos/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/api/v1/modelos-barcos/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/modelos-barcos/**").hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.POST,   "/api/v1/barcos/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/api/v1/barcos/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/barcos/**").hasRole("ADMIN")
-
-                // El resto de cosas (juego, etc.) necesitan estar autenticadas (ADMIN o JUGADOR)
+                // --------- RESTO DE ENDPOINTS ----------
+                // cualquier otra cosa requiere estar autenticado;
+                // los permisos finos (solo ADMIN para CRUD) los manejamos con @PreAuthorize
                 .anyRequest().authenticated()
         );
 
-        // HTTP Basic
+        // Usamos HTTP Basic; Angular envía Authorization: Basic ...
         http.httpBasic(Customizer.withDefaults());
 
         return http.build();

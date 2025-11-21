@@ -1,87 +1,81 @@
-<div class="container py-4">
+<div class="container my-4">
 
-  <h4 class="mb-3">Simulador de Carrera</h4>
+  <h4>🏁 Seleccionar Barco</h4>
 
-  <!-- Mensaje -->
-  <div *ngIf="mensaje" class="alert alert-info">
-    {{ mensaje }}
+  <div class="mb-3">
+    <label class="form-label">Barco</label>
+    <select class="form-select" [(ngModel)]="selectedBarcoId">
+      <option *ngFor="let b of barcos" [ngValue]="b.id">
+        #{{ b.id }} - {{ b.nombreModelo }} ({{ b.nombreJugador }})
+      </option>
+    </select>
   </div>
 
-  <!-- Selección de barco y movimiento -->
-  <div class="card mb-4">
-    <div class="card-body">
+  <button class="btn btn-primary mb-4" (click)="seleccionarBarco()">
+    Elegir Barco
+  </button>
 
-      <div class="row g-3 align-items-end">
-        <div class="col-md-4">
-          <label class="form-label">Barco</label>
-          <select class="form-select"
-                  [(ngModel)]="selectedBarcoId"
-                  name="barco">
-            <option *ngFor="let b of barcos" [ngValue]="b.id">
-              #{{ b.id }} - {{ b.modelo?.nombre }} ({{ b.jugador?.nombre }})
-            </option>
-          </select>
-        </div>
+  <div *ngIf="barco">
 
-        <div class="col-md-3">
-          <label class="form-label">Δvₓ</label>
-          <select class="form-select"
-                  [(ngModel)]="deltaVx"
-                  name="deltaVx">
-            <option [ngValue]="-1">-1</option>
-            <option [ngValue]="0">0</option>
-            <option [ngValue]="1">+1</option>
-          </select>
-        </div>
+    <h4 class="mb-3">🚤 Tablero de Movimiento</h4>
 
-        <div class="col-md-3">
-          <label class="form-label">Δvᵧ</label>
-          <select class="form-select"
-                  [(ngModel)]="deltaVy"
-                  name="deltaVy">
-            <option [ngValue]="-1">-1</option>
-            <option [ngValue]="0">0</option>
-            <option [ngValue]="1">+1</option>
-          </select>
-        </div>
-
-        <div class="col-md-2 d-grid">
-          <button class="btn btn-success" (click)="aplicarMovimiento()">
-            Aplicar movimiento
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Tabla de barcos: posición y velocidad -->
-  <div class="card">
-    <div class="card-header">
-      Estado de los barcos
-    </div>
-    <div class="card-body p-0">
-      <table class="table mb-0">
+    <div class="table-responsive">
+      <table class="table table-striped">
         <thead>
-        <tr>
-          <th>ID</th>
-          <th>Modelo</th>
-          <th>Propietario</th>
-          <th>Posición (x,y)</th>
-          <th>Velocidad (vx,vy)</th>
-        </tr>
+          <tr>
+            <th>ID</th>
+            <th>Modelo</th>
+            <th>Jugador</th>
+            <th>Posición</th>
+            <th>Velocidad</th>
+          </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let b of barcos">
-          <td>{{ b.id }}</td>
-          <td>{{ b.modelo?.nombre }}</td>
-          <td>{{ b.jugador?.nombre }}</td>
-          <td>({{ b.posX }}, {{ b.posY }})</td>
-          <td>({{ b.velX }}, {{ b.velY }})</td>
-        </tr>
+          <tr>
+            <td>{{ barco.id }}</td>
+            <td>{{ barco.nombreModelo }}</td>
+            <td>{{ barco.nombreJugador }}</td>
+            <td>({{ barco.posX }}, {{ barco.posY }})</td>
+            <td>({{ barco.velX }}, {{ barco.velY }})</td>
+          </tr>
         </tbody>
       </table>
     </div>
+
+    <h5 class="mt-4">Opciones de movimiento</h5>
+
+    <div class="row">
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(-1, 1)">↖️</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(0, 1)">⬆️</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(1, 1)">↗️</button>
+      </div>
+
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(-1, 0)">⬅️</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(0, 0)">•</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(1, 0)">➡️</button>
+      </div>
+
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(-1, -1)">↙️</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(0, -1)">⬇️</button>
+      </div>
+      <div class="col-4">
+        <button class="btn btn-secondary w-100 mb-2" (click)="mover(1, -1)">↘️</button>
+      </div>
+    </div>
+
   </div>
 
 </div>

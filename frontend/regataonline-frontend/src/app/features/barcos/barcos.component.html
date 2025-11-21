@@ -1,86 +1,98 @@
-<div class="container py-4">
+<div class="container my-4">
 
-  <h4 class="mb-3">Gestión de Barcos</h4>
+  <!-- Título + botón dashboard -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>Gestión de Barcos</h5>
+    <a class="btn btn-secondary" routerLink="/dashboard">Dashboard</a>
+  </div>
 
-  <div class="row g-4">
+  <!-- Filtros y creación de barcos -->
+  <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
 
-    <!-- LISTADO -->
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header">
-          Lista de Barcos
-        </div>
-        <div class="card-body p-0">
-          <table class="table mb-0">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Modelo</th>
-                <th>Jugador</th>
-                <th>Pos (x,y)</th>
-                <th>Vel (vx,vy)</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let b of barcos">
-                <td>{{ b.id }}</td>
-                <td>{{ b.modelo?.nombre }}</td>
-                <td>{{ b.jugador?.nombre }}</td>
-                <td>({{ b.posX }}, {{ b.posY }})</td>
-                <td>({{ b.velX }}, {{ b.velY }})</td>
-                <td>
-                  <button class="btn btn-danger btn-sm"
-                          (click)="eliminar(b.id)">
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <!-- ADMIN: selector de jugadores -->
+    <div *ngIf="isAdmin" class="flex-grow-1">
+      <label class="form-label fw-semibold">Jugador</label>
+      <select class="form-select" [(ngModel)]="selectedJugadorId">
+        <option [ngValue]="undefined">Todos los jugadores</option>
+        <option *ngFor="let j of jugadores" [ngValue]="j.id">
+          {{ j.nombre }}
+        </option>
+      </select>
+    </div>
+
+    <!-- JUGADOR: muestra su nombre -->
+    <div *ngIf="isJugador" class="flex-grow-1">
+      <label class="form-label fw-semibold d-block">Jugador</label>
+      <div class="form-control-plaintext">
+        {{ auth.currentUser?.nombre }} 
+        <small class="text-muted">(solo puedes crear tu propio barco)</small>
       </div>
     </div>
 
-    <!-- CREAR / ASIGNAR BARCO -->
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header">
-          Crear Nuevo Barco
-        </div>
-        <div class="card-body">
+    <!-- MODELOS (ambos roles) -->
+    <div class="flex-grow-1">
+      <label class="form-label fw-semibold">Modelo</label>
+      <select class="form-select" [(ngModel)]="selectedModeloId">
+        <option [ngValue]="undefined">Todos los modelos</option>
 
-          <label class="form-label">Jugador</label>
-          <select class="form-control mb-3"
-                  [(ngModel)]="selectedJugadorId"
-                  name="jugadorSel">
-            <option [ngValue]="undefined">-- Seleccione --</option>
-            <option *ngFor="let j of jugadores" [ngValue]="j.id">
-              {{ j.nombre }} ({{ j.email }})
-            </option>
-          </select>
+        <!-- Aquí deben aparecer los modelos -->
+        <option *ngFor="let m of modelos" [ngValue]="m.id">
+          {{ m.nombre }}
+        </option>
+      </select>
+    </div>
 
-          <label class="form-label">Modelo de Barco</label>
-          <select class="form-control mb-3"
-                  [(ngModel)]="selectedModeloId"
-                  name="modeloSel">
-            <option [ngValue]="undefined">-- Seleccione --</option>
-            <option *ngFor="let m of modelos" [ngValue]="m.id">
-              {{ m.nombre }} – {{ m.colorHex }}
-            </option>
-          </select>
+    <!-- Botón crear barco -->
+    <div>
+      <button class="btn btn-success" (click)="nuevo()">
+        + Nuevo Barco
+      </button>
+    </div>
 
-          <div class="d-grid">
-            <button class="btn btn-success"
-                    (click)="nuevo()">
-              Crear Barco
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Modelo</th>
+          <th>Propietario</th>
+          <th>Posición</th>
+          <th>Velocidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <!-- FILAS DE BARCOS -->
+        <tr *ngFor="let b of barcos">
+          <td>{{ b.id }}</td>
+          <td>{{ b.nombreModelo }}</td>
+          <td>{{ b.nombreJugador }}</td>
+          <td>({{ b.posX }}, {{ b.posY }})</td>
+          <td>({{ b.velX }}, {{ b.velY }})</td>
+          <td>
+            <button 
+              class="btn btn-sm btn-danger"
+              (click)="eliminar(b.id)"
+              [disabled]="isJugador">
+              Eliminar
             </button>
-          </div>
+          </td>
+        </tr>
 
-        </div>
-      </div>
-    </div>
+        <!-- MENSAJE SI ESTÁ VACÍO -->
+        <tr *ngIf="barcos.length === 0">
+          <td colspan="6" class="text-center text-muted py-3">
+            No hay barcos registrados.
+          </td>
+        </tr>
 
+      </tbody>
+    </table>
   </div>
 
 </div>

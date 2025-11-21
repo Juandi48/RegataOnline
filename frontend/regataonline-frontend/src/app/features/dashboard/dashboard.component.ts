@@ -3,30 +3,25 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
-import { JugadorService } from '../../core/services/jugador.service';
 import { BarcoService } from '../../core/services/barco.service';
+import { JugadorService } from '../../core/services/jugador.service';
 import { ModeloBarcoService } from '../../core/services/modelo-barco.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
+  imports: [CommonModule]
 })
 export class DashboardComponent implements OnInit {
 
   totalJugadores = 0;
-  totalBarcos    = 0;
-  totalModelos   = 0;
-  carrerasActivas = 1;
-
-  isAdmin   = false;
-  isJugador = false;
-  nombreUsuario = '';
+  totalBarcos = 0;
+  totalModelos = 0;
 
   constructor(
-    private auth: AuthService,
+    public auth: AuthService,          // 👈 público para usar en el HTML
     private router: Router,
     private jugadorSrv: JugadorService,
     private barcoSrv: BarcoService,
@@ -34,41 +29,30 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.isAdmin   = this.auth.isAdmin();
-    this.isJugador = this.auth.isJugador();
-    this.nombreUsuario = this.auth.currentUser?.nombre ?? '';
-
-    this.cargarContadores();
+    if (this.auth.isAdmin()) {
+      // Admin ve totales globales
+      this.jugadorSrv.listar().subscribe(js => this.totalJugadores = js.length);
+      this.barcoSrv.listar().subscribe(bs => this.totalBarcos = bs.length);
+      this.modeloSrv.listar().subscribe(ms => this.totalModelos = ms.length);
+    } else {
+      // Jugador: cuenta solo sus barcos
+      const id = this.auth.currentUser?.id;
+      if (id != null) {
+        this.barcoSrv.listar().subscribe(bs => {
+          this.totalBarcos = bs.filter(b => b.jugadorId === id).length;
+        });
+      }
+    }
   }
 
-  cargarContadores(): void {
-    this.jugadorSrv.listar().subscribe(js => this.totalJugadores = js.length);
-    this.barcoSrv.listar().subscribe(bs => this.totalBarcos = bs.length);
-    this.modeloSrv.listar().subscribe(ms => this.totalModelos = ms.length);
-  }
-
-  logout(): void {
+  logout() {
     this.auth.logout();
     this.router.navigate(['/login']);
   }
 
-  irJugadores(): void {
-    this.router.navigate(['/jugadores']);
-  }
-
-  irBarcos(): void {
-    this.router.navigate(['/barcos']);
-  }
-
-  irModelos(): void {
-    this.router.navigate(['/modelos']);
-  }
-
-  irMapas(): void {
-    this.router.navigate(['/mapas']);
-  }
-
-  irJuego(): void {
-    this.router.navigate(['/juego']);
-  }
+  irJugadores() { this.router.navigate(['/jugadores']); }
+  irBarcos()     { this.router.navigate(['/barcos']); }
+  irModelos()    { this.router.navigate(['/modelos']); }
+  irMapas()      { this.router.navigate(['/mapas']); }
+  irJuego()      { this.router.navigate(['/juego']); }
 }

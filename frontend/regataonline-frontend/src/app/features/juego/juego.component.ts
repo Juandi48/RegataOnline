@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { GameService, MovimientoRequest } from '../../core/services/game.service';
+import { BarcoService } from '../../core/services/barco.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Barco } from '../../core/models/barco.model';
 
 @Component({
@@ -16,52 +17,43 @@ export class JuegoComponent implements OnInit {
 
   barcos: Barco[] = [];
   selectedBarcoId?: number;
+  barco?: Barco;
 
-  deltaVx: number = 0;
-  deltaVy: number = 0;
-
-  mensaje?: string;
-
-  constructor(private gameSrv: GameService) {}
+  constructor(
+    private barcoService: BarcoService,
+    public auth: AuthService
+  ) {}
 
   ngOnInit(): void {
-    this.cargarBarcos();
-  }
+    this.barcoService.listar().subscribe(bs => {
 
-  cargarBarcos(): void {
-    this.gameSrv.listarBarcos().subscribe(bs => {
-      this.barcos = bs;
-      if (!this.selectedBarcoId && this.barcos.length > 0) {
-        this.selectedBarcoId = this.barcos[0].id;
+      // Solo barcos del jugador
+      if (this.auth.isJugador()) {
+        this.barcos = bs.filter(b => b.jugadorId === this.auth.currentUser?.id);
+      } else {
+        // Admin ve todos
+        this.barcos = bs;
       }
     });
   }
 
-  aplicarMovimiento(): void {
-    if (!this.selectedBarcoId) {
-      this.mensaje = 'Debe seleccionar un barco.';
-      return;
-    }
+  seleccionarBarco(): void {
+    this.barco = this.barcos.find(b => b.id === this.selectedBarcoId);
+  }
 
-    const req: MovimientoRequest = {
-      barcoId: this.selectedBarcoId,
-      deltaVx: this.deltaVx,
-      deltaVy: this.deltaVy
-    };
+  mover(dx: number, dy: number): void {
+    if (!this.barco) return;
 
-    this.gameSrv.mover(req).subscribe({
-      next: (barcoActualizado) => {
-        // Actualizamos el array local
-        const idx = this.barcos.findIndex(b => b.id === barcoActualizado.id);
-        if (idx >= 0) {
-          this.barcos[idx] = barcoActualizado;
-        }
-        this.mensaje = `Barco ${barcoActualizado.id} movido a (${barcoActualizado.posX}, ${barcoActualizado.posY}) con velocidad (${barcoActualizado.velX}, ${barcoActualizado.velY}).`;
-      },
-      error: (err) => {
-        console.error(err);
-        this.mensaje = 'Error al aplicar movimiento.';
-      }
-    });
+    // actualizar la velocidad según dx/dy
+    this.barco.velX += dx;
+    this.barco.velY += dy;
+
+    // mover al barco
+    this.barco.posX += this.barco.velX;
+    this.barco.posY += this.barco.velY;
+
+    // enviar al backend
+    this.barcoService.actualizar(this.barco.id!, this.barco)
+      .subscribe();
   }
 }

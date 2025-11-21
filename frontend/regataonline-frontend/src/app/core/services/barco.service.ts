@@ -1,22 +1,14 @@
+// src/app/core/services/barco.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Barco } from '../models/barco.model';
 
-export interface BarcoCreateRequest {
-  jugadorId: number;
-  modeloId: number;
-  posX: number;
-  posY: number;
-  velX: number;
-  velY: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class BarcoService {
 
-  // OJO: apiV1Url -> http://localhost:8081/api/v1
+  // Usamos la URL de la API v1
   private baseUrl = `${environment.apiV1Url}/barcos`;
 
   constructor(private http: HttpClient) {}
@@ -29,8 +21,21 @@ export class BarcoService {
     return this.http.get<Barco>(`${this.baseUrl}/${id}`);
   }
 
-  crear(req: BarcoCreateRequest): Observable<Barco> {
-    return this.http.post<Barco>(this.baseUrl, req);
+  // Para crear barco desde BarcosComponent
+  crear(payload: {
+    jugadorId: number;
+    modeloId: number;
+    velX: number;
+    velY: number;
+    posX: number;
+    posY: number;
+  }): Observable<Barco> {
+    return this.http.post<Barco>(this.baseUrl, payload);
+  }
+
+  // ✅ Método que te faltaba y que usa JuegoComponent
+  actualizar(id: number, barco: Partial<Barco>): Observable<Barco> {
+    return this.http.put<Barco>(`${this.baseUrl}/${id}`, barco);
   }
 
   eliminar(id: number): Observable<void> {

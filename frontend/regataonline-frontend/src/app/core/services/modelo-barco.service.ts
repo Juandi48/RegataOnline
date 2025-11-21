@@ -4,31 +4,28 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ModeloBarco } from '../models/modelo-barco.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class ModeloBarcoService {
 
-  // También en /api
-  private baseUrl = `${environment.apiUrl}/modelos-barcos`;
+  private api = `${environment.apiV1Url}/modelos`;
 
   constructor(private http: HttpClient) {}
 
   listar(): Observable<ModeloBarco[]> {
-    return this.http.get<ModeloBarco[]>(this.baseUrl);
+    return this.http.get<ModeloBarco[]>(this.api);
   }
 
-  obtener(id: number): Observable<ModeloBarco> {
-    return this.http.get<ModeloBarco>(`${this.baseUrl}/${id}`);
+  crear(data: Partial<ModeloBarco>): Observable<ModeloBarco> {
+    return this.http.post<ModeloBarco>(this.api, data);
   }
 
-  crear(m: Partial<ModeloBarco>): Observable<ModeloBarco> {
-    return this.http.post<ModeloBarco>(this.baseUrl, m);
-  }
-
-  actualizar(id: number, m: Partial<ModeloBarco>): Observable<ModeloBarco> {
-    return this.http.put<ModeloBarco>(`${this.baseUrl}/${id}`, m);
+  actualizar(id: number, data: Partial<ModeloBarco>): Observable<ModeloBarco> {
+    return this.http.put<ModeloBarco>(`${this.api}/${id}`, data);
   }
 
   eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.delete<void>(`${this.api}/${id}`);
   }
 }

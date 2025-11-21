@@ -1,20 +1,17 @@
-import { Jugador } from './jugador.model';
-import { ModeloBarco } from './modelo-barco.model';
-
 export interface Barco {
   id?: number;
 
-  // IDs que usamos al crear barcos desde Angular
-  jugadorId?: number;
+  // claves foráneas
   modeloId?: number;
+  jugadorId?: number;
 
-  // Objetos completos que vienen del backend
-  jugador?: Jugador;
-  modelo?: ModeloBarco;
-
-  // Estado en el mapa
+  // estado físico
   posX: number;
   posY: number;
   velX: number;
   velY: number;
+
+  // SOLO PARA VISTAS (no son obligatorios)
+  nombreModelo?: string;
+  nombreJugador?: string;
 }
