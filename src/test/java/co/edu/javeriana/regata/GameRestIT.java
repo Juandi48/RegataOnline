@@ -25,14 +25,24 @@ public class GameRestIT {
 
     @Test
     void testAplicarMovimiento() {
+
         MovimientoRequest req = new MovimientoRequest();
         req.setBarcoId(1L);
-        req.setDeltaVx(1);
-        req.setDeltaVy(0);
+        req.setAx(1);   // aceleración en X
+        req.setAy(0);   // aceleración en Y
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<MovimientoRequest> entity = new HttpEntity<>(req, headers);
 
         ResponseEntity<String> res = rest.postForEntity(
-                "/api/v1/juego/mover", req, String.class);
+                "/api/v1/juego/mover",
+                entity,
+                String.class
+        );
 
+        // Para el video basta con verificar que responde algo razonable
         assertThat(res.getStatusCode()).isIn(HttpStatus.OK, HttpStatus.BAD_REQUEST);
     }
 }
