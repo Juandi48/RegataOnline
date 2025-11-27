@@ -1,14 +1,20 @@
-import { Component } from '@angular/core';
-import { CommonModule, NgFor, NgIf, NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+/* === Barcos Component CSS === */
 
-@Component({
-  selector: 'app-barcos',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgFor, NgIf, NgClass],
-  templateUrl: './barcos.component.html',
-  styleUrls: ['./barcos.component.css']
-})
-export class BarcosComponent {
+.table td, 
+.table th {
+  vertical-align: middle;
+}
 
+.alert {
+  margin-bottom: 1rem;
+}
+
+button.btn-danger[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-control-plaintext {
+  padding-left: 0;
+  font-weight: 500;
 }

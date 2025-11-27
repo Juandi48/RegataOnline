@@ -1,3 +1,4 @@
+// app.routes.ts
 import { Routes } from '@angular/router';
 
 import { LoginComponent } from './features/login/login.component';
@@ -13,20 +14,19 @@ import { adminGuard } from './core/guards/admin.guard';
 import { jugadorGuard } from './core/guards/jugador.guard';
 
 export const routes: Routes = [
-    { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-    { path: 'login', component: LoginComponent },
+  { path: 'login', component: LoginComponent },
 
-    // Cualquier usuario autenticado puede ver el dashboard
-    { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-    { path: 'barcos', component: BarcosComponent, canActivate: [authGuard] },
+  // Cualquier usuario autenticado
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'barcos', component: BarcosComponent, canActivate: [authGuard] },
 
-    // CRUD solo ADMIN
-    { path: 'jugadores', component: JugadoresComponent, canActivate: [authGuard, adminGuard] },
-    { path: 'modelos', component: ModelosComponent, canActivate: [authGuard, adminGuard] },
-    { path: 'barcos', component: BarcosComponent, canActivate: [authGuard, adminGuard] },
-    { path: 'mapas', component: MapasComponent, canActivate: [authGuard, adminGuard] },
+  // CRUD solo ADMIN
+  { path: 'jugadores', component: JugadoresComponent, canActivate: [authGuard, adminGuard] },
+  { path: 'modelos', component: ModelosComponent, canActivate: [authGuard, adminGuard] },
+  { path: 'mapas', component: MapasComponent, canActivate: [authGuard, adminGuard] },
 
-    // Juego solo JUGADOR
-    { path: 'juego', component: JuegoComponent, canActivate: [authGuard, jugadorGuard] },
+  // Juego solo JUGADOR
+  { path: 'juego', component: JuegoComponent, canActivate: [authGuard, jugadorGuard] },
 ];

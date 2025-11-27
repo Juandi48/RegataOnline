@@ -7,7 +7,7 @@ import { Mapa } from '../models/mapa.model';
 @Injectable({ providedIn: 'root' })
 export class MapaService {
 
-  private baseUrl = `${environment.apiUrl}/mapas`;
+  private baseUrl = `${environment.apiV1Url}/mapas`;
 
   constructor(private http: HttpClient) {}
 
@@ -19,7 +19,7 @@ export class MapaService {
     return this.http.get<Mapa>(`${this.baseUrl}/${id}`);
   }
 
-  // para tu editor, normalmente mandarías también las celdas
+  // Para tu editor, normalmente mandarías también las celdas
   crear(mapa: Mapa): Observable<Mapa> {
     return this.http.post<Mapa>(this.baseUrl, mapa);
   }

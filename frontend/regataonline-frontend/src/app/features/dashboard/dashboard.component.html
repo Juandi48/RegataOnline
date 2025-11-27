@@ -16,19 +16,19 @@
       <div class="row text-center mb-4">
         <div class="col-md-3 mb-3">
           <div class="p-4 bg-light rounded">
-            <div class="fs-3 fw-bold">{{ totalJugadores }}</div>
+            <div class="fs-3 fw-bold">{{ totalJugadores() }}</div>
             <div>Jugadores</div>
           </div>
         </div>
         <div class="col-md-3 mb-3">
           <div class="p-4 bg-light rounded">
-            <div class="fs-3 fw-bold">{{ totalBarcos }}</div>
+            <div class="fs-3 fw-bold">{{ totalBarcos() }}</div>
             <div>Barcos</div>
           </div>
         </div>
         <div class="col-md-3 mb-3">
           <div class="p-4 bg-light rounded">
-            <div class="fs-3 fw-bold">{{ totalModelos }}</div>
+            <div class="fs-3 fw-bold">{{ totalModelos() }}</div>
             <div>Modelos</div>
           </div>
         </div>
@@ -43,7 +43,8 @@
       <hr>
 
       <!-- Botones según rol -->
-      <ng-container *ngIf="auth.isAdmin(); else jugadorButtons">
+      @if (auth.isAdmin()) {
+
         <!-- ADMIN -->
         <div class="d-grid gap-2">
           <button class="btn btn-primary" (click)="irJugadores()">
@@ -62,10 +63,10 @@
             🎮 Iniciar Juego
           </button>
         </div>
-      </ng-container>
 
-      <!-- JUGADOR -->
-      <ng-template #jugadorButtons>
+      } @else {
+
+        <!-- JUGADOR -->
         <div class="d-grid gap-2">
           <button class="btn btn-primary" (click)="irBarcos()">
             🚤 Gestionar mi Barco
@@ -74,7 +75,8 @@
             🎮 Iniciar Juego
           </button>
         </div>
-      </ng-template>
+
+      }
 
     </div>
   </div>

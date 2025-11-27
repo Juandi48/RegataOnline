@@ -2,18 +2,23 @@ package co.edu.javeriana.regata.config;
 
 import co.edu.javeriana.regata.domain.Jugador;
 import co.edu.javeriana.regata.repository.JugadorRepository;
+import co.edu.javeriana.regata.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -29,49 +34,67 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(JugadorRepository jugadorRepository) {
         return username -> {
             Jugador j = jugadorRepository.findByEmail(username)
-                    .orElseThrow(() ->
-                            new UsernameNotFoundException("Jugador no encontrado: " + username));
+                    .orElseThrow(() -> new UsernameNotFoundException("Jugador no encontrado: " + username));
 
-            // j.getRol() devuelve "ADMIN" o "JUGADOR"
+            // j.getRol() = "ADMIN" o "JUGADOR"
             return User.withUsername(j.getEmail())
                     .password(j.getPassword())
-                    .roles(j.getRol())   // genera ROLE_ADMIN o ROLE_JUGADOR
+                    .roles(j.getRol())   // genera ROLE_ADMIN / ROLE_JUGADOR
                     .build();
         };
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public DaoAuthenticationProvider authenticationProvider(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
+
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            DaoAuthenticationProvider authProvider) throws Exception {
 
         http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // Para que funcione la consola H2 en el navegador
+        // H2 console
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
+        http.authenticationProvider(authProvider);
+
         http.authorizeHttpRequests(auth -> auth
-                // H2 console sin autenticación
+                // ===== CORS / preflight =====
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ===== PÚBLICOS =====
                 .requestMatchers("/h2/**").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/signup").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/modelos/**").permitAll()
 
-                // --------- ENDPOINTS PÚBLICOS (para llenar combos, etc.) ----------
-                // listar jugadores (para el combo de login)
-                .requestMatchers(HttpMethod.GET, "/api/v1/jugadores/**").permitAll()
-                // listar modelos de barco (jugador necesita verlos para elegir uno)
-                .requestMatchers(HttpMethod.GET, "/api/v1/modelos-barcos/**").permitAll()
-                // listar barcos (por ahora dejamos GET abierto; la app ya filtra por jugador)
-                .requestMatchers(HttpMethod.GET, "/api/v1/barcos/**").permitAll()
+                // ===== BARCOS: cualquier autenticado puede listar y crear =====
+                .requestMatchers(HttpMethod.GET, "/api/v1/barcos/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/barcos/**").authenticated()
+                // borrar barcos solo admin (si quieres):
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/barcos/**").hasRole("ADMIN")
 
-                // --------- AUTENTICACIÓN ----------
-                // endpoint que usamos para login desde Angular (Basic Auth)
-                .requestMatchers("/api/v1/auth/**").authenticated()
-
-                // --------- RESTO DE ENDPOINTS ----------
-                // cualquier otra cosa requiere estar autenticado;
-                // los permisos finos (solo ADMIN para CRUD) los manejamos con @PreAuthorize
+                // ===== RESTO: solo autenticados =====
                 .anyRequest().authenticated()
         );
 
-        // Usamos HTTP Basic; Angular envía Authorization: Basic ...
-        http.httpBasic(Customizer.withDefaults());
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

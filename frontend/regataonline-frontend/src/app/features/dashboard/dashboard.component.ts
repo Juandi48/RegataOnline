@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -16,12 +16,12 @@ import { ModeloBarcoService } from '../../core/services/modelo-barco.service';
 })
 export class DashboardComponent implements OnInit {
 
-  totalJugadores = 0;
-  totalBarcos = 0;
-  totalModelos = 0;
+  totalJugadores = signal(0);
+  totalBarcos    = signal(0);
+  totalModelos   = signal(0);
 
   constructor(
-    public auth: AuthService,          // 👈 público para usar en el HTML
+    public auth: AuthService,
     private router: Router,
     private jugadorSrv: JugadorService,
     private barcoSrv: BarcoService,
@@ -30,16 +30,16 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.auth.isAdmin()) {
-      // Admin ve totales globales
-      this.jugadorSrv.listar().subscribe(js => this.totalJugadores = js.length);
-      this.barcoSrv.listar().subscribe(bs => this.totalBarcos = bs.length);
-      this.modeloSrv.listar().subscribe(ms => this.totalModelos = ms.length);
+      // Admin: totales globales
+      this.jugadorSrv.listar().subscribe(js => this.totalJugadores.set(js.length));
+      this.barcoSrv.listar().subscribe(bs => this.totalBarcos.set(bs.length));
+      this.modeloSrv.listar().subscribe(ms => this.totalModelos.set(ms.length));
     } else {
       // Jugador: cuenta solo sus barcos
-      const id = this.auth.currentUser?.id;
+      const id = this.auth.currentUser()?.id;
       if (id != null) {
         this.barcoSrv.listar().subscribe(bs => {
-          this.totalBarcos = bs.filter(b => b.jugadorId === id).length;
+          this.totalBarcos.set(bs.filter(b => b.jugadorId === id).length);
         });
       }
     }
@@ -51,8 +51,8 @@ export class DashboardComponent implements OnInit {
   }
 
   irJugadores() { this.router.navigate(['/jugadores']); }
-  irBarcos()     { this.router.navigate(['/barcos']); }
-  irModelos()    { this.router.navigate(['/modelos']); }
-  irMapas()      { this.router.navigate(['/mapas']); }
-  irJuego()      { this.router.navigate(['/juego']); }
+  irBarcos()    { this.router.navigate(['/barcos']); }
+  irModelos()   { this.router.navigate(['/modelos']); }
+  irMapas()     { this.router.navigate(['/mapas']); }
+  irJuego()     { this.router.navigate(['/juego']); }
 }

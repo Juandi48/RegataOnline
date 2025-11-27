@@ -26,10 +26,33 @@ public class GameService {
     }
 
     /**
-     * Método que usa GameRest: aplica un movimiento a un barco.
+     * Versión antigua, sin validación de usuario.
+     * La dejo por compatibilidad (por ejemplo, con tests).
      */
     public Barco aplicarMovimiento(MovimientoRequest req) {
         return procesarMovimiento(req);
+    }
+
+    /**
+     * Versión con seguridad: verifica que
+     *  - si NO es admin, solo pueda mover su propio barco.
+     */
+    public Barco aplicarMovimiento(MovimientoRequest req,
+                                   String emailUsuario,
+                                   boolean esAdmin) {
+
+        Barco barco = barcoRepository.findById(req.getBarcoId())
+                .orElseThrow(() ->
+                        new RuntimeException("Barco no encontrado: " + req.getBarcoId()));
+
+        if (!esAdmin) {
+            String emailDueno = barco.getJugador().getEmail();
+            if (!emailDueno.equalsIgnoreCase(emailUsuario)) {
+                throw new RuntimeException("No puedes mover un barco que no es tuyo.");
+            }
+        }
+
+        return procesarMovimiento(req, barco);
     }
 
     /**
@@ -42,15 +65,28 @@ public class GameService {
      *  p' = p + v'
      *
      * El barco parte de v = (0,0) y posición inicial que tengas en la BD.
+     *
+     * NOTA: Aquí todavía NO se valida contra paredes ni bordes de mapa.
+     * Eso se puede agregar luego cuando vinculemos Barco con Mapa.
      */
-    public Barco procesarMovimiento(MovimientoRequest req) {
+    private Barco procesarMovimiento(MovimientoRequest req) {
 
         Barco barco = barcoRepository.findById(req.getBarcoId())
-                .orElseThrow(() -> new RuntimeException("Barco no encontrado: " + req.getBarcoId()));
+                .orElseThrow(() ->
+                        new RuntimeException("Barco no encontrado: " + req.getBarcoId()));
 
-        // aceleraciones elegidas por el jugador: -1, 0 o +1
+        return procesarMovimiento(req, barco);
+    }
+
+    private Barco procesarMovimiento(MovimientoRequest req, Barco barco) {
+
         int ax = req.getAx();
         int ay = req.getAy();
+
+        // validamos que ax, ay ∈ {-1, 0, +1}
+        if (ax < -1 || ax > 1 || ay < -1 || ay > 1) {
+            throw new IllegalArgumentException("Las aceleraciones ax y ay deben ser -1, 0 o +1.");
+        }
 
         // nueva velocidad
         int nuevaVelX = barco.getVelX() + ax;

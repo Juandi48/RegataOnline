@@ -3,30 +3,66 @@
     <span>Gestión de Modelos</span>
     <a routerLink="/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
   </div>
+
   <div class="card-body">
+
+    @if (errorMsg(); as msg) {
+      <div class="alert alert-danger">
+        {{ msg }}
+      </div>
+    }
+
     <div class="d-flex justify-content-between mb-3">
-      <input class="form-control w-50" placeholder="Buscar modelo..." [(ngModel)]="filtro">
-      <button class="btn btn-success" (click)="nuevo()">+ Nuevo Modelo</button>
+      <input
+        class="form-control w-50"
+        placeholder="Buscar modelo..."
+        [(ngModel)]="filtroModel">
+
+      <button class="btn btn-success" (click)="nuevo()">
+        + Nuevo Modelo
+      </button>
     </div>
+
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
-        <tr><th>ID</th><th>Nombre</th><th>Color</th><th>Acciones</th></tr>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Color</th>
+            <th>Acciones</th>
+          </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let m of modelosFiltrados">
-          <td>{{ m.id }}</td>
-          <td>{{ m.nombre }}</td>
-          <td>
-            <span class="badge" [ngStyle]="{'background-color': m.colorHex}">
-              {{ m.colorHex }}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-warning me-1" (click)="editar(m)">Editar</button>
-            <button class="btn btn-sm btn-danger" (click)="eliminar(m)">Eliminar</button>
-          </td>
-        </tr>
+
+          @for (m of modelosFiltrados(); track m.id) {
+            <tr>
+              <td>{{ m.id }}</td>
+              <td>{{ m.nombre }}</td>
+              <td>
+                <span class="badge" [style.background-color]="m.colorHex">
+                  {{ m.colorHex }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-warning me-1" (click)="editar(m)">
+                  Editar
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="eliminar(m)">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          }
+
+          @if (modelosFiltrados().length === 0) {
+            <tr>
+              <td colspan="4" class="text-center text-muted py-3">
+                No hay modelos registrados.
+              </td>
+            </tr>
+          }
+
         </tbody>
       </table>
     </div>

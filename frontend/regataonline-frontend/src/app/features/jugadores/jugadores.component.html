@@ -3,20 +3,53 @@
     <span>Gestión de Jugadores</span>
     <button class="btn btn-success btn-sm" (click)="nuevo()">+ Nuevo</button>
   </div>
+
   <div class="card-body table-responsive">
+
+    @if (errorMsg(); as msg) {
+      <div class="alert alert-danger">
+        {{ msg }}
+      </div>
+    }
+
+    @if (cargando()) {
+      <div class="text-center py-3 text-muted">
+        Cargando jugadores...
+      </div>
+    }
+
     <table class="table table-striped">
       <thead>
-      <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let j of jugadores">
-        <td>{{ j.id }}</td>
-        <td>{{ j.nombre }}</td>
-        <td>{{ j.email }}</td>
-        <td>
-          <button class="btn btn-sm btn-danger" (click)="eliminar(j.id)">Eliminar</button>
-        </td>
-      </tr>
+
+        @for (j of jugadores(); track j.id) {
+          <tr>
+            <td>{{ j.id }}</td>
+            <td>{{ j.nombre }}</td>
+            <td>{{ j.email }}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" (click)="eliminar(j.id)">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        }
+
+        @if (!cargando() && jugadores().length === 0) {
+          <tr>
+            <td colspan="4" class="text-center text-muted py-3">
+              No hay jugadores registrados.
+            </td>
+          </tr>
+        }
+
       </tbody>
     </table>
   </div>

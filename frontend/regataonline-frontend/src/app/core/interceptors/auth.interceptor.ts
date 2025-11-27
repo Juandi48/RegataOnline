@@ -1,3 +1,4 @@
+// src/app/core/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import {
   HttpEvent,
@@ -22,7 +23,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     const authReq = req.clone({
       setHeaders: {
-        Authorization: `Basic ${token}`
+        Authorization: `Bearer ${token}`
       }
     });
 

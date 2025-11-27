@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgFor, NgIf, NgClass } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { BarcoService } from '../../core/services/barco.service';
@@ -14,91 +14,150 @@ import { ModeloBarco } from '../../core/models/modelo-barco.model';
 @Component({
   selector: 'app-barcos',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgFor, NgIf, NgClass],
+  imports: [CommonModule, FormsModule],
   templateUrl: './barcos.component.html',
   styleUrls: ['./barcos.component.css']
 })
 export class BarcosComponent implements OnInit {
 
-  barcos: Barco[] = [];
-  jugadores: Jugador[] = [];
-  modelos: ModeloBarco[] = [];
+  barcos = signal<Barco[]>([]);
+  jugadores = signal<Jugador[]>([]);
+  modelos = signal<ModeloBarco[]>([]);
 
-  selectedJugadorId?: number;
-  selectedModeloId?: number;
+  selectedJugadorId = signal<number | null>(null);
+  selectedModeloId = signal<number | null>(null);
 
-  // 🔥 propiedades para permisos
-  isAdmin = false;
-  isJugador = false;
+  isAdmin = signal(false);
+  isJugador = signal(false);
+  errorMsg = signal<string | null>(null);
 
   constructor(
     private barcoSrv: BarcoService,
     private jugadorSrv: JugadorService,
     private modeloSrv: ModeloBarcoService,
-    public auth: AuthService      // IMPORTANTE: debe ser PUBLIC
-  ) {}
+    public auth: AuthService
+  ) { }
 
   ngOnInit(): void {
-    // 🔥 Determinar rol del usuario
-    this.isAdmin = this.auth.isAdmin();
-    this.isJugador = this.auth.isJugador();
+    this.isAdmin.set(this.auth.isAdmin());
+    this.isJugador.set(this.auth.isJugador());
 
     // ADMIN → carga todos los jugadores
-    if (this.isAdmin) {
-      this.jugadorSrv.listar().subscribe(js => this.jugadores = js);
+    if (this.isAdmin()) {
+      this.jugadorSrv.listar().subscribe({
+        next: js => this.jugadores.set(js),
+        error: err => {
+          console.error('Error cargando jugadores', err);
+          this.errorMsg.set('No fue posible cargar los jugadores.');
+        }
+      });
     }
 
     // Ambos roles cargan los modelos
-    this.modeloSrv.listar().subscribe(ms => this.modelos = ms);
+    this.modeloSrv.listar().subscribe({
+      next: ms => this.modelos.set(ms),
+      error: err => {
+        console.error('Error cargando modelos', err);
+        this.errorMsg.set('No fue posible cargar los modelos.');
+      }
+    });
 
     this.cargar();
   }
 
   cargar(): void {
-    this.barcoSrv.listar().subscribe(bs => {
+    this.errorMsg.set(null);
 
-      if (this.isAdmin) {
-        this.barcos = bs;
-      } else {
-        const id = this.auth.currentUser?.id;
-        this.barcos = bs.filter(b => b.jugadorId === id);
+    this.barcoSrv.listar().subscribe({
+      next: bs => {
+        if (this.isAdmin()) {
+          this.barcos.set(bs);
+        } else {
+          const current = this.auth.currentUser();
+          const id = current?.id ?? null;
+          if (id == null) {
+            this.barcos.set([]);
+          } else {
+            this.barcos.set(bs.filter(b => b.jugadorId === id));
+          }
+        }
+      },
+      error: err => {
+        console.error('Error cargando barcos', err);
+        this.errorMsg.set('No fue posible cargar los barcos.');
       }
-
     });
   }
 
+  // Puentes para [(ngModel)]
+  get selectedJugadorIdModel(): number | null {
+    return this.selectedJugadorId();
+  }
+  set selectedJugadorIdModel(val: number | null) {
+    this.selectedJugadorId.set(val);
+  }
+
+  get selectedModeloIdModel(): number | null {
+    return this.selectedModeloId();
+  }
+  set selectedModeloIdModel(val: number | null) {
+    this.selectedModeloId.set(val);
+  }
+
   nuevo(): void {
-    if (!this.selectedModeloId) {
-      alert("Debe seleccionar un modelo");
+    const modeloId = this.selectedModeloId();
+    if (!modeloId) {
+      alert('Debe seleccionar un modelo');
       return;
     }
 
-    let jugadorId = this.selectedJugadorId;
+    let jugadorId: number | null;
 
-    if (this.isJugador) {
-      jugadorId = this.auth.currentUser?.id;
+    if (this.isJugador()) {
+      const current = this.auth.currentUser();
+      jugadorId = current?.id ?? null;   // jugador siempre usa su propio id
+    } else {
+      // ADMIN: debe elegir el jugador en el combo
+      jugadorId = this.selectedJugadorId();
+      if (!jugadorId) {
+        alert('Debe seleccionar un jugador');
+        return;
+      }
     }
 
     if (!jugadorId) {
-      alert("Debe seleccionar un jugador");
+      // fallback de seguridad, no debería pasar si lo de arriba está bien
+      alert('No se pudo determinar el jugador.');
       return;
     }
 
     this.barcoSrv.crear({
       jugadorId,
-      modeloId: this.selectedModeloId,
+      modeloId,
       velX: 0,
       velY: 0,
       posX: 0,
       posY: 0
-    }).subscribe(() => this.cargar());
+    }).subscribe({
+      next: () => this.cargar(),
+      error: err => {
+        console.error('Error creando barco', err);
+        this.errorMsg.set('No fue posible crear el barco.');
+      }
+    });
   }
 
+
   eliminar(id?: number): void {
-    if (!id || this.isJugador) return;
+    if (!id || this.isJugador()) return;
+    if (!confirm('¿Eliminar barco?')) return;
 
-    if (!confirm("¿Eliminar barco?")) return;
-
-    this.barcoSrv.eliminar(id).subscribe(() => this.cargar());
+    this.barcoSrv.eliminar(id).subscribe({
+      next: () => this.cargar(),
+      error: err => {
+        console.error('Error eliminando barco', err);
+        this.errorMsg.set('No fue posible eliminar el barco.');
+      }
+    });
   }
 }

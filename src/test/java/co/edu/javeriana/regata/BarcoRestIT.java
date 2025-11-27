@@ -1,25 +1,28 @@
 package co.edu.javeriana.regata;
 
-import co.edu.javeriana.regata.domain.Barco;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class BarcoRestIT {
+@AutoConfigureWebTestClient
+class BarcoRestIT {
+
+    @LocalServerPort
+    int port;
 
     @Autowired
-    private TestRestTemplate rest;
+    private WebTestClient webTestClient;
 
     @Test
     void testListarBarcos() {
-        ResponseEntity<Barco[]> res =
-                rest.getForEntity("/api/v1/barcos", Barco[].class);
-
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        webTestClient
+                .get()
+                .uri("/api/v1/barcos")
+                .exchange()
+                .expectStatus().isOk();
     }
 }

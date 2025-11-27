@@ -6,11 +6,12 @@ export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (auth.currentUser && auth.isAdmin()) {
+  const user = auth.currentUser(); // Signal → se lee como función
+
+  if (user && auth.isAdmin()) {
     return true;
   }
 
-  // Si no es admin, lo devuelvo al dashboard
   router.navigate(['/dashboard']);
   return false;
 };

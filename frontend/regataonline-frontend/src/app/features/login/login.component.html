@@ -22,25 +22,24 @@
         </div>
 
         <!-- Mensaje de error -->
-        <div *ngIf="errorMsg" class="alert alert-danger">
-          {{ errorMsg }}
-        </div>
+        @if (errorMsg(); as msg) {
+          <div class="alert alert-danger">
+            {{ msg }}
+          </div>
+        }
 
         <!-- FORMULARIO -->
         <form (ngSubmit)="entrar()">
 
-          <!-- Usuario -->
-          <label class="form-label fw-semibold">Usuario</label>
-          <select
+          <!-- Usuario (email) -->
+          <label class="form-label fw-semibold">Usuario (email)</label>
+          <input
+            type="email"
             class="form-control mb-3"
-            [(ngModel)]="selectedId"
-            name="jugador"
+            placeholder="usuario@ejemplo.com"
+            [(ngModel)]="emailModel"
+            name="email"
             required>
-            <option [ngValue]="undefined">-- Seleccione --</option>
-            <option *ngFor="let j of jugadores" [ngValue]="j.id">
-              {{ j.nombre }} ({{ j.email }})
-            </option>
-          </select>
 
           <!-- Contraseña -->
           <label class="form-label fw-semibold">Contraseña</label>
@@ -48,14 +47,19 @@
             type="password"
             class="form-control mb-4"
             placeholder="Ingrese su contraseña"
-            [(ngModel)]="password"
+            [(ngModel)]="passwordModel"
             name="password"
             required>
 
           <!-- Botón -->
           <button type="submit"
-                  class="btn btn-success w-100 py-2 fw-semibold">
-            Iniciar Sesión
+                  class="btn btn-success w-100 py-2 fw-semibold"
+                  [disabled]="loading()">
+            @if (loading()) {
+              Iniciando sesión...
+            } @else {
+              Iniciar Sesión
+            }
           </button>
 
         </form>

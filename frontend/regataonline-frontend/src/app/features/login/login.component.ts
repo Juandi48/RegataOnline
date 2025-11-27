@@ -1,68 +1,71 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { Router } from '@angular/router';
-import { JugadorService } from '../../core/services/jugador.service';
-import { Jugador } from '../../core/models/jugador.model';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgFor, NgIf],
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
 
-  jugadores: Jugador[] = [];
-  selectedId?: number;
-
-  password: string = '';
-  errorMsg?: string;
+  // signals
+  email    = signal<string>('');
+  password = signal<string>('');
+  errorMsg = signal<string | null>(null);
+  loading  = signal<boolean>(false);
 
   constructor(
-    private jugadorService: JugadorService,
     private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    // 🔹 Importante: limpiar cualquier token viejo
+    // limpiar cualquier sesión previa
     this.authService.logout();
+  }
 
-    // 🔹 Cargar jugadores para el combo
-    this.jugadorService.listar().subscribe({
-      next: js => this.jugadores = js,
-      error: err => {
-        console.error('Error cargando jugadores', err);
-        this.errorMsg = 'No fue posible cargar la lista de jugadores.';
-      }
-    });
+  // Puentes para [(ngModel)]
+  get emailModel(): string {
+    return this.email();
+  }
+  set emailModel(val: string) {
+    this.email.set(val);
+  }
+
+  get passwordModel(): string {
+    return this.password();
+  }
+  set passwordModel(val: string) {
+    this.password.set(val);
   }
 
   entrar(): void {
-    this.errorMsg = undefined;
+    this.errorMsg.set(null);
 
-    if (!this.selectedId || !this.password) {
-      this.errorMsg = 'Debe seleccionar un usuario y escribir la contraseña.';
+    const email    = this.email().trim();
+    const password = this.password();
+
+    if (!email || !password) {
+      this.errorMsg.set('Debe ingresar usuario (email) y contraseña.');
       return;
     }
 
-    const jugador = this.jugadores.find(j => j.id === this.selectedId);
-    if (!jugador) {
-      this.errorMsg = 'Jugador no encontrado.';
-      return;
-    }
+    this.loading.set(true);
 
-    // Login con email + contraseña
-    this.authService.login(jugador.email, this.password).subscribe({
-      next: user => {
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        this.loading.set(false);
         this.router.navigate(['/dashboard']);
       },
       error: () => {
-        this.errorMsg = 'Credenciales inválidas.';
+        this.loading.set(false);
+        this.errorMsg.set('Credenciales inválidas.');
       }
     });
   }

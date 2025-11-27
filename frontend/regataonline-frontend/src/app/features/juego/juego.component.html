@@ -2,12 +2,22 @@
 
   <h4>🏁 Seleccionar Barco</h4>
 
+  @if (errorMsg(); as msg) {
+    <div class="alert alert-danger">
+      {{ msg }}
+    </div>
+  }
+
   <div class="mb-3">
     <label class="form-label">Barco</label>
-    <select class="form-select" [(ngModel)]="selectedBarcoId">
-      <option *ngFor="let b of barcos" [ngValue]="b.id">
-        #{{ b.id }} - {{ b.nombreModelo }} ({{ b.nombreJugador }})
-      </option>
+    <select class="form-select" [(ngModel)]="selectedBarcoIdModel">
+      <option [ngValue]="null">-- Seleccione --</option>
+
+      @for (b of barcos(); track b.id) {
+        <option [ngValue]="b.id">
+          #{{ b.id }} - {{ b.nombreModelo }} ({{ b.nombreJugador }})
+        </option>
+      }
     </select>
   </div>
 
@@ -15,7 +25,7 @@
     Elegir Barco
   </button>
 
-  <div *ngIf="barco">
+  @if (barco(); as b) {
 
     <h4 class="mb-3">🚤 Tablero de Movimiento</h4>
 
@@ -32,11 +42,11 @@
         </thead>
         <tbody>
           <tr>
-            <td>{{ barco.id }}</td>
-            <td>{{ barco.nombreModelo }}</td>
-            <td>{{ barco.nombreJugador }}</td>
-            <td>({{ barco.posX }}, {{ barco.posY }})</td>
-            <td>({{ barco.velX }}, {{ barco.velY }})</td>
+            <td>{{ b.id }}</td>
+            <td>{{ b.nombreModelo }}</td>
+            <td>{{ b.nombreJugador }}</td>
+            <td>({{ b.posX }}, {{ b.posY }})</td>
+            <td>({{ b.velX }}, {{ b.velY }})</td>
           </tr>
         </tbody>
       </table>
@@ -76,6 +86,5 @@
       </div>
     </div>
 
-  </div>
-
+  }
 </div>

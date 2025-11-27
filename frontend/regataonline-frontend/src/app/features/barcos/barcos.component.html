@@ -1,44 +1,57 @@
 <div class="container my-4">
 
-  <!-- Título + botón dashboard -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5>Gestión de Barcos</h5>
     <a class="btn btn-secondary" routerLink="/dashboard">Dashboard</a>
   </div>
 
+  @if (errorMsg(); as msg) {
+    <div class="alert alert-danger">
+      {{ msg }}
+    </div>
+  }
+
   <!-- Filtros y creación de barcos -->
   <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
 
     <!-- ADMIN: selector de jugadores -->
-    <div *ngIf="isAdmin" class="flex-grow-1">
-      <label class="form-label fw-semibold">Jugador</label>
-      <select class="form-select" [(ngModel)]="selectedJugadorId">
-        <option [ngValue]="undefined">Todos los jugadores</option>
-        <option *ngFor="let j of jugadores" [ngValue]="j.id">
-          {{ j.nombre }}
-        </option>
-      </select>
-    </div>
+    @if (isAdmin()) {
+      <div class="flex-grow-1">
+        <label class="form-label fw-semibold">Jugador</label>
+        <select class="form-select" [(ngModel)]="selectedJugadorIdModel">
+          <option [ngValue]="null">Todos los jugadores</option>
+
+          @for (j of jugadores(); track j.id) {
+            <option [ngValue]="j.id">
+              {{ j.nombre }}
+            </option>
+          }
+        </select>
+      </div>
+    }
 
     <!-- JUGADOR: muestra su nombre -->
-    <div *ngIf="isJugador" class="flex-grow-1">
-      <label class="form-label fw-semibold d-block">Jugador</label>
-      <div class="form-control-plaintext">
-        {{ auth.currentUser?.nombre }} 
-        <small class="text-muted">(solo puedes crear tu propio barco)</small>
+    @if (isJugador()) {
+      <div class="flex-grow-1">
+        <label class="form-label fw-semibold d-block">Jugador</label>
+        <div class="form-control-plaintext">
+          {{ auth.currentUser()?.nombre }}
+          <small class="text-muted">(solo puedes crear tu propio barco)</small>
+        </div>
       </div>
-    </div>
+    }
 
     <!-- MODELOS (ambos roles) -->
     <div class="flex-grow-1">
       <label class="form-label fw-semibold">Modelo</label>
-      <select class="form-select" [(ngModel)]="selectedModeloId">
-        <option [ngValue]="undefined">Todos los modelos</option>
+      <select class="form-select" [(ngModel)]="selectedModeloIdModel">
+        <option [ngValue]="null">Todos los modelos</option>
 
-        <!-- Aquí deben aparecer los modelos -->
-        <option *ngFor="let m of modelos" [ngValue]="m.id">
-          {{ m.nombre }}
-        </option>
+        @for (m of modelos(); track m.id) {
+          <option [ngValue]="m.id">
+            {{ m.nombre }}
+          </option>
+        }
       </select>
     </div>
 
@@ -67,29 +80,31 @@
 
       <tbody>
 
-        <!-- FILAS DE BARCOS -->
-        <tr *ngFor="let b of barcos">
-          <td>{{ b.id }}</td>
-          <td>{{ b.nombreModelo }}</td>
-          <td>{{ b.nombreJugador }}</td>
-          <td>({{ b.posX }}, {{ b.posY }})</td>
-          <td>({{ b.velX }}, {{ b.velY }})</td>
-          <td>
-            <button 
-              class="btn btn-sm btn-danger"
-              (click)="eliminar(b.id)"
-              [disabled]="isJugador">
-              Eliminar
-            </button>
-          </td>
-        </tr>
+        @for (b of barcos(); track b.id) {
+          <tr>
+            <td>{{ b.id }}</td>
+            <td>{{ b.nombreModelo }}</td>
+            <td>{{ b.nombreJugador }}</td>
+            <td>({{ b.posX }}, {{ b.posY }})</td>
+            <td>({{ b.velX }}, {{ b.velY }})</td>
+            <td>
+              <button
+                class="btn btn-sm btn-danger"
+                (click)="eliminar(b.id)"
+                [disabled]="isJugador()">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        }
 
-        <!-- MENSAJE SI ESTÁ VACÍO -->
-        <tr *ngIf="barcos.length === 0">
-          <td colspan="6" class="text-center text-muted py-3">
-            No hay barcos registrados.
-          </td>
-        </tr>
+        @if (barcos().length === 0) {
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">
+              No hay barcos registrados.
+            </td>
+          </tr>
+        }
 
       </tbody>
     </table>

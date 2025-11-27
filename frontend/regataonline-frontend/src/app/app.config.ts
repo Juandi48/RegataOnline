@@ -11,12 +11,13 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Rutas
     provideRouter(routes),
 
-    // HttpClient + interceptores
+    // HttpClient + integración con interceptores declarados vía DI
     provideHttpClient(withInterceptorsFromDi()),
 
-    // Nuestro interceptor de autenticación
+    // Interceptor de autenticación (JWT)
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

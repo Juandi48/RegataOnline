@@ -6,8 +6,8 @@ import { Barco } from '../models/barco.model';
 
 export interface MovimientoRequest {
   barcoId: number;
-  deltaVx: number;
-  deltaVy: number;
+  ax: number;
+  ay: number;
 }
 
 @Injectable({ providedIn: 'root' })

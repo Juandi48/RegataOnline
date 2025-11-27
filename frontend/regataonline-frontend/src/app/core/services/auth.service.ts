@@ -1,89 +1,101 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+// src/app/core/services/auth.service.ts
+import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Jugador } from '../models/jugador.model';
+import { Observable, map, tap } from 'rxjs';
 
 export interface AuthUser {
   id: number;
   nombre: string;
   email: string;
   rol: 'ADMIN' | 'JUGADOR';
-  token: string;          // Basic token
 }
+
+interface LoginResponse {
+  token: string;
+  id: number;
+  nombre: string;
+  email: string;
+  rol: 'ADMIN' | 'JUGADOR';
+}
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY  = 'auth_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private readonly TOKEN_KEY = 'authToken';
-  private readonly USER_KEY  = 'currentUser';
-
-  private apiV1 = environment.apiV1Url;
+  private currentUserSignal = signal<AuthUser | null>(null);
 
   constructor(private http: HttpClient) {
-    // Restaurar usuario si ya estaba guardado
-    const stored = localStorage.getItem(this.USER_KEY);
-    if (stored) {
-      this._currentUser = JSON.parse(stored);
+    // Restaurar sesión si ya había usuario guardado
+    const userJson = localStorage.getItem(USER_KEY);
+    if (userJson) {
+      try {
+        const user: AuthUser = JSON.parse(userJson);
+        this.currentUserSignal.set(user);
+      } catch {
+        localStorage.removeItem(USER_KEY);
+      }
     }
   }
 
-  private _currentUser: AuthUser | null = null;
+  // ========= helpers públicos =========
 
-  /** Usuario autenticado actual */
-  get currentUser(): AuthUser | null {
-    return this._currentUser;
+  getToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
   }
 
-  /** Rol actual (o null si no hay login) */
-  get role(): 'ADMIN' | 'JUGADOR' | null {
-    return this._currentUser?.rol ?? null;
+  currentUser(): AuthUser | null {
+    return this.currentUserSignal();
   }
 
-  /** Helpers de rol */
   isAdmin(): boolean {
-    return this.role === 'ADMIN';
+    return this.currentUserSignal()?.rol === 'ADMIN';
   }
 
   isJugador(): boolean {
-    return this.role === 'JUGADOR';
+    return this.currentUserSignal()?.rol === 'JUGADOR';
   }
 
-  /** Token Basic actual */
-  getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
+  // ========= LOGIN SOLO USA /auth/login =========
 
-  /** Login con email y password */
-  login(email: string, password: string): Observable<Jugador> {
-    const basic = 'Basic ' + btoa(`${email}:${password}`);
+  login(email: string, password: string): Observable<AuthUser> {
+    const body = { email, password };
 
-    const headers = new HttpHeaders({
-      Authorization: basic
-    });
+    return this.http.post<LoginResponse>(`${environment.apiV1Url}/auth/login`, body).pipe(
+      tap(resp => {
+        if (!resp || !resp.token) {
+          throw new Error('Login sin token en la respuesta');
+        }
 
-    // /auth/me devuelve el Jugador logueado (id, nombre, email, rol)
-    return this.http.get<Jugador>(`${this.apiV1}/auth/me`, { headers }).pipe(
-      tap(j => {
-        const authUser: AuthUser = {
-          id: j.id!,
-          nombre: j.nombre,
-          email: j.email,
-          rol: j.rol as 'ADMIN' | 'JUGADOR',
-          token: basic
+        // Guardar token en localStorage (para el interceptor)
+        localStorage.setItem(TOKEN_KEY, resp.token);
+
+        // Construir usuario y guardarlo
+        const user: AuthUser = {
+          id: resp.id,
+          nombre: resp.nombre,
+          email: resp.email,
+          rol: resp.rol
         };
 
-        this._currentUser = authUser;
-        localStorage.setItem(this.TOKEN_KEY, basic);
-        localStorage.setItem(this.USER_KEY, JSON.stringify(authUser));
-      })
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        this.currentUserSignal.set(user);
+      }),
+      // El observable que ve el componente solo emite el usuario
+      map(resp => ({
+        id: resp.id,
+        nombre: resp.nombre,
+        email: resp.email,
+        rol: resp.rol
+      }))
     );
   }
 
-  /** Logout */
   logout(): void {
-    this._currentUser = null;
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    this.currentUserSignal.set(null);
   }
 }

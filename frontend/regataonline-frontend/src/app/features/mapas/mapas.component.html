@@ -6,20 +6,26 @@
         <a routerLink="/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
       </div>
       <div class="card-body">
-        <div
-          class="grid border p-2 rounded"
-          [style.--w]="mapa.ancho"
-        >
-          <div *ngFor="let y of [].constructor(mapa.alto); let yi = index">
-            <ng-container *ngFor="let x of [].constructor(mapa.ancho); let xi = index">
-              <div
-                class="cell"
-                [ngClass]="'cell-' + getTipoCelda(xi, yi).toLowerCase()"
-                (click)="onCellClick(xi, yi)"
-              ></div>
-            </ng-container>
+
+        @if (mapa(); as m) {
+          <div
+            class="grid border p-2 rounded"
+            [style.--w]="m.ancho"
+          >
+            @for (y of filas(); track y) {
+              <div class="d-flex">
+                @for (x of columnas(); track x) {
+                  <div
+                    class="cell"
+                    [ngClass]="'cell-' + getTipoCelda(x, y).toLowerCase()"
+                    (click)="onCellClick(x, y)"
+                  ></div>
+                }
+              </div>
+            }
           </div>
-        </div>
+        }
+
       </div>
     </div>
   </div>
@@ -40,10 +46,12 @@
 
   <div class="col-lg-3">
     <div class="card">
-      <div class="card-header">Dimensiones (fijas por ahora)</div>
+      <div class="card-header">Dimensiones</div>
       <div class="card-body">
-        <p>Ancho: {{ mapa.ancho }}</p>
-        <p>Alto: {{ mapa.alto }}</p>
+        @if (mapa(); as m) {
+          <p>Ancho: {{ m.ancho }}</p>
+          <p>Alto: {{ m.alto }}</p>
+        }
       </div>
     </div>
   </div>
